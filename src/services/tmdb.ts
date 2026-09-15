@@ -176,19 +176,24 @@ export async function getPersonalizedRecommendations(
   }
 }
 
-export async function getRandomMovie(
-  preferredGenres: string[] = [],
-  excludedIds: number[] = []
-): Promise<Movie | null> {
+export type RandomMovieOptions = {
+  preferredGenres?: string[]
+  excludedIds?: number[]
+  genreId?: number
+  maxDuration?: number
+  minRating?: number
+}
+
+export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<Movie | null> {
+  const { preferredGenres = [], excludedIds = [], genreId, maxDuration, minRating } = options
   const genres = await getMovieGenres()
   const normalized = preferredGenres.map(name => name.trim().toLowerCase())
-  const genreIds = genres
+  const preferredIds = genres
     .filter(genre => normalized.includes(genre.name.toLowerCase()))
     .map(genre => genre.id)
     .slice(0, 4)
 
-  // On change de page à chaque tirage pour renouveler réellement les propositions.
-  const randomPage = Math.floor(Math.random() * 25) + 1
+  const randomPage = Math.floor(Math.random() * 20) + 1
   const params = new URLSearchParams({
     language: "fr-FR",
     include_adult: "false",
@@ -196,12 +201,12 @@ export async function getRandomMovie(
     page: String(randomPage),
     sort_by: "popularity.desc",
     "vote_count.gte": "100",
-    "vote_average.gte": "6",
+    "vote_average.gte": String(minRating ?? 6),
   })
 
-  if (genreIds.length > 0) {
-    params.set("with_genres", genreIds.join("|"))
-  }
+  if (genreId) params.set("with_genres", String(genreId))
+  else if (preferredIds.length > 0) params.set("with_genres", preferredIds.join("|"))
+  if (maxDuration) params.set("with_runtime.lte", String(maxDuration))
 
   const [data, genreMap] = await Promise.all([
     request<TmdbPage>(`/discover/movie?${params.toString()}`),
