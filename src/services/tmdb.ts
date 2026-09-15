@@ -190,36 +190,76 @@ export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<
   const normalized = preferredGenres.map(name => name.trim().toLowerCase())
   const preferredIds = genres
     .filter(genre => normalized.includes(genre.name.toLowerCase()))
+    .sort((a, b) => normalized.indexOf(a.name.toLowerCase()) - normalized.indexOf(b.name.toLowerCase()))
     .map(genre => genre.id)
-    .slice(0, 4)
-
-  const randomPage = Math.floor(Math.random() * 20) + 1
-  const params = new URLSearchParams({
-    language: "fr-FR",
-    include_adult: "false",
-    include_video: "false",
-    page: String(randomPage),
-    sort_by: "popularity.desc",
-    "vote_count.gte": "100",
-    "vote_average.gte": String(minRating ?? 6),
-  })
-
-  if (genreId) params.set("with_genres", String(genreId))
-  else if (preferredIds.length > 0) params.set("with_genres", preferredIds.join("|"))
-  if (maxDuration) params.set("with_runtime.lte", String(maxDuration))
-
-  const [data, genreMap] = await Promise.all([
-    request<TmdbPage>(`/discover/movie?${params.toString()}`),
-    getGenreMap(),
-  ])
+    .slice(0, 3)
 
   const excluded = new Set(excludedIds)
-  const candidates = data.results
-    .map(movie => mapMovie(movie, genreMap))
-    .filter(movie => !excluded.has(movie.id) && Boolean(movie.poster))
 
-  if (candidates.length === 0) return null
-  return candidates[Math.floor(Math.random() * candidates.length)]
+  // En mode « Selon mes goûts », on privilégie une vraie combinaison des genres
+  // dominants de la bibliothèque (AND) au lieu d'accepter n'importe lequel (OR).
+  // Si la combinaison est trop restrictive, on élargit progressivement.
+  const genreAttempts: string[] = []
+  if (genreId) {
+    genreAttempts.push(String(genreId))
+  } else if (preferredIds.length > 0) {
+    if (preferredIds.length >= 2) genreAttempts.push(preferredIds.slice(0, 2).join(","))
+    genreAttempts.push(String(preferredIds[0]))
+    if (preferredIds.length >= 2) genreAttempts.push(preferredIds.slice(0, 2).join("|"))
+  } else {
+    genreAttempts.push("")
+  }
+
+  for (const withGenres of genreAttempts) {
+    // Les premières pages sont plus fiables qu'une page 1..20 aléatoire, mais on
+    // varie quand même le tirage pour éviter de toujours proposer les mêmes films.
+    const pages = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3)
+
+    for (const page of pages) {
+      const params = new URLSearchParams({
+        language: "fr-FR",
+        include_adult: "false",
+        include_video: "false",
+        page: String(page),
+        sort_by: "popularity.desc",
+        "vote_count.gte": "100",
+        "vote_average.gte": String(minRating ?? 6),
+      })
+
+      if (withGenres) params.set("with_genres", withGenres)
+      if (maxDuration) params.set("with_runtime.lte", String(maxDuration))
+
+      const [data, genreMap] = await Promise.all([
+        request<TmdbPage>(`/discover/movie?${params.toString()}`),
+        getGenreMap(),
+      ])
+
+      const candidates = data.results
+        .map(movie => mapMovie(movie, genreMap))
+        .filter(movie => !excluded.has(movie.id) && Boolean(movie.poster))
+
+      if (candidates.length > 0) {
+        // Parmi les résultats compatibles, on favorise ceux qui recoupent le plus
+        // de genres de la bibliothèque, puis on choisit dans les meilleurs profils.
+        const scored = candidates
+          .map(movie => ({
+            movie,
+            score: movieGenresForRecommendation(movie).filter(name => normalized.includes(name.toLowerCase())).length,
+          }))
+          .sort((a, b) => b.score - a.score || b.movie.rating - a.movie.rating)
+        const bestScore = scored[0]?.score ?? 0
+        const best = scored.filter(item => item.score === bestScore).slice(0, 8)
+        return best[Math.floor(Math.random() * best.length)]?.movie ?? null
+      }
+    }
+  }
+
+  return null
+}
+
+function movieGenresForRecommendation(movie: Movie): string[] {
+  if (movie.genres?.length) return movie.genres
+  return movie.genre.split(",").map(genre => genre.trim()).filter(Boolean)
 }
 
 export async function getPopularMovies(page = 1): Promise<MoviePage> {

@@ -33,10 +33,10 @@ export function useRandomMovie() {
   const preferredGenres = useMemo(() => {
     const scores = new Map<string, number>()
     library.forEach(item => {
-      const weight = item.status === "watched" ? 3 : item.status === "watching" ? 2 : 1
+      const weight = item.status === "watched" ? 5 : item.status === "watching" ? 3 : 1
       movieGenres(item).forEach(genre => scores.set(genre, (scores.get(genre) ?? 0) + weight))
     })
-    return [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([genre]) => genre)
+    return [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([genre]) => genre)
   }, [library])
 
   useEffect(() => {
