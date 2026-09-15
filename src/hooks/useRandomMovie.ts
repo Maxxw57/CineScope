@@ -44,6 +44,7 @@ export function useRandomMovie() {
   }, [])
 
   const draw = useCallback(async () => {
+    const startedAt = Date.now()
     setLoading(true)
     setError(null)
     try {
@@ -76,6 +77,8 @@ export function useRandomMovie() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de tirer un film.")
     } finally {
+      const remaining = 500 - (Date.now() - startedAt)
+      if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining))
       setLoading(false)
     }
   }, [filters, library, mode, preferredGenres])

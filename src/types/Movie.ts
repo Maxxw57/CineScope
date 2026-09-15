@@ -14,6 +14,7 @@ export type Movie = {
   genre: string
   genres?: string[]
   poster: string
+  backdrop?: string
   synopsis: string
 
   // Casting simple

@@ -22,6 +22,7 @@ type TmdbMovie = {
   genre_ids?: number[]
   genres?: TmdbGenre[]
   poster_path?: string | null
+  backdrop_path?: string | null
   overview?: string
   runtime?: number
   original_language?: string
@@ -75,6 +76,7 @@ function mapMovie(movie: TmdbMovie, genreMap?: Map<number, string>): Movie {
     genre: genreNames.join(", ") || "Genre inconnu",
     genres: genreNames,
     poster: posterUrl(movie.poster_path),
+    backdrop: movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : undefined,
     synopsis: movie.overview || "Aucune description disponible.",
     cast: movie.credits?.cast?.slice(0, 8).map(actor => actor.name) ?? [],
     castDetails: movie.credits?.cast?.slice(0, 8).map(actor => ({ id: actor.id, name: actor.name, character: actor.character, profile: posterUrl(actor.profile_path) })) ?? [],
@@ -249,7 +251,13 @@ export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<
           .sort((a, b) => b.score - a.score || b.movie.rating - a.movie.rating)
         const bestScore = scored[0]?.score ?? 0
         const best = scored.filter(item => item.score === bestScore).slice(0, 8)
-        return best[Math.floor(Math.random() * best.length)]?.movie ?? null
+        const selected = best[Math.floor(Math.random() * best.length)]?.movie ?? null
+        if (!selected) return null
+        try {
+          return await getMovieDetails(selected.id)
+        } catch {
+          return selected
+        }
       }
     }
   }
