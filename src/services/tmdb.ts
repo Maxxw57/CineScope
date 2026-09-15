@@ -176,6 +176,47 @@ export async function getPersonalizedRecommendations(
   }
 }
 
+export async function getRandomMovie(
+  preferredGenres: string[] = [],
+  excludedIds: number[] = []
+): Promise<Movie | null> {
+  const genres = await getMovieGenres()
+  const normalized = preferredGenres.map(name => name.trim().toLowerCase())
+  const genreIds = genres
+    .filter(genre => normalized.includes(genre.name.toLowerCase()))
+    .map(genre => genre.id)
+    .slice(0, 4)
+
+  // On change de page à chaque tirage pour renouveler réellement les propositions.
+  const randomPage = Math.floor(Math.random() * 25) + 1
+  const params = new URLSearchParams({
+    language: "fr-FR",
+    include_adult: "false",
+    include_video: "false",
+    page: String(randomPage),
+    sort_by: "popularity.desc",
+    "vote_count.gte": "100",
+    "vote_average.gte": "6",
+  })
+
+  if (genreIds.length > 0) {
+    params.set("with_genres", genreIds.join("|"))
+  }
+
+  const [data, genreMap] = await Promise.all([
+    request<TmdbPage>(`/discover/movie?${params.toString()}`),
+    getGenreMap(),
+  ])
+
+  const excluded = new Set(excludedIds)
+  const candidates = data.results
+    .map(movie => mapMovie(movie, genreMap))
+    .filter(movie => !excluded.has(movie.id) && Boolean(movie.poster))
+
+  if (candidates.length === 0) return null
+  return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
 export async function getPopularMovies(page = 1): Promise<MoviePage> {
   const [data, genres] = await Promise.all([
     request<TmdbPage>(`/movie/popular?language=fr-FR&page=${page}`),

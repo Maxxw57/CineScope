@@ -6,6 +6,7 @@ const navItems = [
   { to: "/", label: "Accueil" },
   { to: "/films", label: "Films" },
   { to: "/pour-vous", label: "Pour vous" },
+  { to: "/film-aleatoire", label: "🎲 Aléatoire" },
   { to: "/search", label: "Recherche" },
   { to: "/favorites", label: "Favoris" },
   { to: "/library", label: "Bibliothèque" },

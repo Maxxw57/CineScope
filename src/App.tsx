@@ -14,6 +14,7 @@ import Settings from "./pages/Settings"
 import Search from "./pages/Search"
 import ActorDetail from "./pages/ActorDetail"
 import ForYou from "./pages/ForYou"
+import RandomMovie from "./pages/RandomMovie"
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/films/:id" element={<MovieDetail />} />
         <Route path="/acteurs/:id" element={<ActorDetail />} />
         <Route path="/pour-vous" element={<ProtectedRoute><ForYou /></ProtectedRoute>} />
+        <Route path="/film-aleatoire" element={<RandomMovie />} />
         <Route path="/search" element={<Search />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/library" element={<Library />} />
