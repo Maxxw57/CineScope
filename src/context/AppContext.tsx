@@ -140,6 +140,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.motion = preferences.animations ? preferences.motionLevel : "off"
+    // L’intensité visuelle reste indépendante du bouton Animations :
+    // elle pilote notamment la puissance du dégradé global CineScope.
+    document.documentElement.dataset.effectIntensity = preferences.motionLevel
     document.documentElement.dataset.density = preferences.cardDensity
     localStorage.setItem("cinePreferences", JSON.stringify(preferences))
   }, [preferences])

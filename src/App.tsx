@@ -18,7 +18,7 @@ import RandomMovie from "./pages/RandomMovie"
 
 export default function App() {
   return (
-    <div className="min-h-screen">
+    <div className="cine-app-shell min-h-screen">
       <NavBar />
       <Routes>
         <Route path="/" element={<Home />} />

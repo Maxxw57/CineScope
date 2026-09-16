@@ -54,7 +54,7 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 .cine-button-secondary:hover { border-color: rgb(var(--cine-accent) / .45) !important; color: rgb(var(--cine-accent)) !important; }
 .cine-movie-card:hover { box-shadow: 0 25px 50px -12px rgb(var(--cine-accent) / .16) !important; }
 .cine-accent-choice-active { border-color: rgb(var(--cine-accent)) !important; box-shadow: 0 12px 30px rgb(var(--cine-accent) / .12) !important; }
-.cine-accent-preview { border-color: rgb(var(--cine-accent) / .25); background: linear-gradient(135deg, rgb(var(--cine-accent) / .10), transparent 65%); }
+.cine-accent-preview { border-color: rgb(var(--cine-accent) / .25); background: linear-gradient(135deg, rgb(var(--cine-accent) / var(--cine-settings-medium)), transparent 65%); }
 .cine-accent-chip { background: rgb(var(--cine-accent) / .12); color: rgb(var(--cine-accent)); }
 
 /* Les anciennes classes bleues du projet suivent maintenant l'accent choisi. */
@@ -68,6 +68,40 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 .shadow-blue-600\/20, .shadow-blue-600\/25 { --tw-shadow-color: rgb(var(--cine-accent) / .2) !important; }
 .from-blue-600 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }
 .from-blue-700 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }
+
+
+/* Intensité visuelle : pilote réellement la puissance des halos/dégradés. */
+:root,
+:root[data-effect-intensity="normal"] {
+  --cine-bg-strong: .20;
+  --cine-bg-medium: .13;
+  --cine-bg-soft: .11;
+  --cine-bg-bottom: .15;
+  --cine-bg-wash: .055;
+  --cine-settings-strong: .30;
+  --cine-settings-medium: .13;
+  --cine-settings-soft: .09;
+}
+:root[data-effect-intensity="subtle"] {
+  --cine-bg-strong: .075;
+  --cine-bg-medium: .045;
+  --cine-bg-soft: .035;
+  --cine-bg-bottom: .055;
+  --cine-bg-wash: .018;
+  --cine-settings-strong: .11;
+  --cine-settings-medium: .045;
+  --cine-settings-soft: .03;
+}
+:root[data-effect-intensity="cinematic"] {
+  --cine-bg-strong: .42;
+  --cine-bg-medium: .29;
+  --cine-bg-soft: .24;
+  --cine-bg-bottom: .34;
+  --cine-bg-wash: .12;
+  --cine-settings-strong: .48;
+  --cine-settings-medium: .25;
+  --cine-settings-soft: .18;
+}
 
 /* Réglages utilisateur */
 .cine-settings-input { @apply mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-950; }
@@ -83,7 +117,7 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 .cine-appearance-panel {
   position: relative;
   overflow: hidden;
-  border-color: rgb(var(--cine-accent) / .30) !important;
+  border-color: rgb(var(--cine-accent) / var(--cine-settings-strong)) !important;
   background:
     radial-gradient(circle at 88% 0%, rgb(var(--cine-accent) / .28), transparent 42%),
     linear-gradient(135deg, rgb(var(--cine-accent) / .18), rgb(var(--cine-accent) / .06) 48%, transparent 78%),
@@ -120,14 +154,44 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
   inset: 72px 0 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 75% 48% at 50% 0%, rgb(var(--cine-accent) / .24), transparent 72%),
-    radial-gradient(circle 34rem at 12% 30%, rgb(var(--cine-accent) / .10), transparent 72%),
-    radial-gradient(circle 30rem at 90% 55%, rgb(var(--cine-accent) / .07), transparent 75%);
+    radial-gradient(ellipse 75% 48% at 50% 0%, rgb(var(--cine-accent) / var(--cine-settings-strong)), transparent 72%),
+    radial-gradient(circle 34rem at 12% 30%, rgb(var(--cine-accent) / var(--cine-settings-medium)), transparent 72%),
+    radial-gradient(circle 30rem at 90% 55%, rgb(var(--cine-accent) / var(--cine-settings-soft)), transparent 75%);
   transition: background .4s ease;
 }
 .dark .cine-settings-page::before {
   background:
-    radial-gradient(ellipse 78% 52% at 50% 0%, rgb(var(--cine-accent) / .30), transparent 70%),
-    radial-gradient(circle 36rem at 10% 32%, rgb(var(--cine-accent) / .13), transparent 72%),
-    radial-gradient(circle 32rem at 92% 58%, rgb(var(--cine-accent) / .09), transparent 75%);
+    radial-gradient(ellipse 78% 52% at 50% 0%, rgb(var(--cine-accent) / var(--cine-settings-strong)), transparent 70%),
+    radial-gradient(circle 36rem at 10% 32%, rgb(var(--cine-accent) / var(--cine-settings-medium)), transparent 72%),
+    radial-gradient(circle 32rem at 92% 58%, rgb(var(--cine-accent) / var(--cine-settings-soft)), transparent 75%);
+}
+
+
+/* Ambiance globale CineScope : l'accent colore toutes les pages, du haut jusqu'en bas. */
+.cine-app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 85% 34rem at 12% 4%, rgb(var(--cine-accent) / var(--cine-bg-strong)), transparent 72%),
+    radial-gradient(ellipse 70% 42rem at 92% 38%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 74%),
+    radial-gradient(ellipse 82% 46rem at 10% 72%, rgb(var(--cine-accent) / var(--cine-bg-soft)), transparent 76%),
+    radial-gradient(ellipse 75% 36rem at 88% 98%, rgb(var(--cine-accent) / var(--cine-bg-bottom)), transparent 74%),
+    linear-gradient(180deg, rgb(var(--cine-accent) / var(--cine-bg-wash)) 0%, transparent 22%, rgb(var(--cine-accent) / var(--cine-bg-wash)) 52%, transparent 72%, rgb(var(--cine-accent) / var(--cine-bg-wash)) 100%);
+  transition: background .45s ease;
+}
+
+.dark .cine-app-shell {
+  background:
+    radial-gradient(ellipse 85% 34rem at 12% 4%, rgb(var(--cine-accent) / var(--cine-bg-strong)), transparent 72%),
+    radial-gradient(ellipse 70% 42rem at 92% 38%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 74%),
+    radial-gradient(ellipse 82% 46rem at 10% 72%, rgb(var(--cine-accent) / var(--cine-bg-soft)), transparent 76%),
+    radial-gradient(ellipse 75% 36rem at 88% 98%, rgb(var(--cine-accent) / var(--cine-bg-bottom)), transparent 74%),
+    linear-gradient(180deg, rgb(var(--cine-accent) / var(--cine-bg-wash)) 0%, transparent 22%, rgb(var(--cine-accent) / var(--cine-bg-wash)) 52%, transparent 72%, rgb(var(--cine-accent) / var(--cine-bg-wash)) 100%);
+}
+
+/* Les pages restent transparentes pour laisser apparaître l'ambiance globale. */
+.cine-app-shell > :not(.cine-navbar) {
+  position: relative;
+  z-index: 1;
 }
