@@ -326,3 +326,87 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 :root[data-effect-intensity="subtle"] .cine-accent-text {
   text-shadow: none;
 }
+
+/* Intensité globale V3 : applique le niveau choisi aux éléments de TOUTES les pages,
+   y compris ceux construits directement avec des classes Tailwind. */
+:root,
+:root[data-effect-intensity="normal"] {
+  --cine-fx-surface-shadow-alpha: .10;
+  --cine-fx-surface-glow-alpha: .08;
+  --cine-fx-surface-border-alpha: .10;
+  --cine-fx-image-saturation: 1.02;
+  --cine-fx-image-contrast: 1.01;
+  --cine-fx-overlay-alpha: .05;
+  --cine-fx-generic-lift: -3px;
+}
+:root[data-effect-intensity="subtle"] {
+  --cine-fx-surface-shadow-alpha: .035;
+  --cine-fx-surface-glow-alpha: .025;
+  --cine-fx-surface-border-alpha: .045;
+  --cine-fx-image-saturation: .96;
+  --cine-fx-image-contrast: 1;
+  --cine-fx-overlay-alpha: .015;
+  --cine-fx-generic-lift: -1px;
+}
+:root[data-effect-intensity="cinematic"] {
+  --cine-fx-surface-shadow-alpha: .22;
+  --cine-fx-surface-glow-alpha: .18;
+  --cine-fx-surface-border-alpha: .18;
+  --cine-fx-image-saturation: 1.12;
+  --cine-fx-image-contrast: 1.055;
+  --cine-fx-overlay-alpha: .10;
+  --cine-fx-generic-lift: -6px;
+}
+
+/* Cartes/panneaux écrits sans classes cine-* : Favoris, Bibliothèque, Profil,
+   Recherche, Pour vous, Acteurs, détails, formulaires et pages d'authentification. */
+.cine-app-shell :is(.rounded-xl, .rounded-2xl, .rounded-3xl)[class*="border"][class*="bg-"],
+.cine-app-shell :is(.rounded-xl, .rounded-2xl, .rounded-3xl)[class*="shadow"] {
+  box-shadow:
+    0 18px 44px -30px rgb(15 23 42 / var(--cine-fx-surface-shadow-alpha)),
+    0 14px 38px -34px rgb(var(--cine-accent) / var(--cine-fx-surface-glow-alpha));
+  transition-duration: var(--cine-fx-transition) !important;
+}
+.dark .cine-app-shell :is(.rounded-xl, .rounded-2xl, .rounded-3xl)[class*="border"][class*="bg-"],
+.dark .cine-app-shell :is(.rounded-xl, .rounded-2xl, .rounded-3xl)[class*="shadow"] {
+  border-color: rgb(255 255 255 / calc(.07 + var(--cine-fx-surface-border-alpha))) !important;
+  box-shadow:
+    0 22px 55px -34px rgb(0 0 0 / calc(.28 + var(--cine-fx-surface-shadow-alpha))),
+    0 18px 48px -36px rgb(var(--cine-accent) / var(--cine-fx-surface-glow-alpha));
+}
+
+/* Les visuels de films participent eux aussi au niveau d'ambiance. */
+.cine-app-shell img {
+  filter: saturate(var(--cine-fx-image-saturation)) contrast(var(--cine-fx-image-contrast));
+  transition: filter var(--cine-fx-transition) ease, transform var(--cine-fx-transition) ease;
+}
+
+/* Les contrôles et boutons génériques réagissent même s'ils n'utilisent pas cine-button-*. */
+:root:not([data-motion="off"]) .cine-app-shell button:hover:not(:disabled),
+:root:not([data-motion="off"]) .cine-app-shell a.rounded-xl:hover,
+:root:not([data-motion="off"]) .cine-app-shell a.rounded-2xl:hover {
+  transform: translateY(var(--cine-fx-generic-lift));
+}
+
+/* En cinématique, les grandes surfaces gagnent une légère lumière d'accent ;
+   en discret elle devient presque imperceptible grâce aux variables ci-dessus. */
+.cine-app-shell main,
+.cine-app-shell .page-enter {
+  position: relative;
+}
+.cine-app-shell main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(var(--cine-accent) / var(--cine-fx-overlay-alpha)), transparent 24rem);
+}
+
+/* Modales et overlays suivent aussi l'intensité. */
+.cine-modal-backdrop {
+  backdrop-filter: blur(var(--cine-fx-blur)) saturate(var(--cine-fx-saturation));
+}
+.cine-modal {
+  box-shadow: 0 32px 90px -20px rgb(var(--cine-accent) / var(--cine-fx-glow));
+}
