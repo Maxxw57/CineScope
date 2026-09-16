@@ -78,3 +78,31 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 :root[data-motion="cinematic"] .page-enter { animation-duration: .6s; }
 :root[data-motion="cinematic"] .cine-movie-card:hover { transform: translateY(-8px) scale(1.015); }
 :root[data-density="compact"] .cine-movie-card { border-radius: 1rem; }
+
+/* Panneau Apparence teinté selon la couleur CineScope sélectionnée */
+.cine-appearance-panel {
+  position: relative;
+  overflow: hidden;
+  border-color: rgb(var(--cine-accent) / .30) !important;
+  background:
+    radial-gradient(circle at 88% 0%, rgb(var(--cine-accent) / .28), transparent 42%),
+    linear-gradient(135deg, rgb(var(--cine-accent) / .18), rgb(var(--cine-accent) / .06) 48%, transparent 78%),
+    rgb(255 255 255 / .82) !important;
+  box-shadow: 0 22px 55px -32px rgb(var(--cine-accent) / .55);
+  transition: background .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.dark .cine-appearance-panel {
+  background:
+    radial-gradient(circle at 88% 0%, rgb(var(--cine-accent) / .38), transparent 43%),
+    linear-gradient(135deg, rgb(var(--cine-accent) / .22), rgb(var(--cine-accent) / .08) 48%, rgb(2 6 23 / .35) 82%),
+    rgb(10 15 28 / .90) !important;
+  box-shadow: 0 28px 70px -36px rgb(var(--cine-accent) / .72);
+}
+.cine-appearance-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(255 255 255 / .07), transparent 32%);
+}
+.cine-appearance-panel > * { position: relative; z-index: 1; }

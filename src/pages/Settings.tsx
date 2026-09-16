@@ -63,7 +63,7 @@ export default function Settings() {
   return <main className="page-enter mx-auto max-w-6xl px-5 py-10 sm:px-8">
     <div className="mb-8"><p className="cine-eyebrow">Centre de contrôle</p><h1 className="mt-2 text-4xl font-black tracking-tight">Paramètres</h1><p className="mt-2 text-gray-500 dark:text-gray-400">Personnalisez CineScope, ses recommandations et vos données.</p></div>
     <div className="space-y-6">
-      <section className="cine-panel"><h2 className="text-xl font-black">🎨 Apparence</h2><div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <section className="cine-panel cine-appearance-panel"><h2 className="text-xl font-black">🎨 Apparence</h2><div className="mt-5 grid gap-5 lg:grid-cols-2">
         <label className="text-sm font-bold">Thème<select value={preferences.themeMode} onChange={e => patch({ themeMode: e.target.value as ThemeMode })} className="cine-settings-input"><option value="system">Système</option><option value="dark">Sombre</option><option value="light">Clair</option></select></label>
         <label className="text-sm font-bold">Intensité des effets<select value={preferences.motionLevel} onChange={e => patch({ motionLevel: e.target.value as CinePreferences["motionLevel"] })} disabled={!preferences.animations} className="cine-settings-input"><option value="subtle">Discret</option><option value="normal">Normal</option><option value="cinematic">Cinématique</option></select></label>
         <Toggle checked={preferences.animations} onChange={animations => patch({ animations })} label="Animations" />
