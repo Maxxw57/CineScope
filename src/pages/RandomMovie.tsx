@@ -56,7 +56,7 @@ export default function RandomMovie() {
         <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
         <div className="relative">
           <p className="text-sm font-black uppercase tracking-[0.22em] text-blue-300">Que regarder ce soir ?</p>
-          <h1 className="mt-2 text-4xl font-black sm:text-5xl">🎲 Film aléatoire</h1>
+          <h1 className="mt-2 text-4xl font-black sm:text-5xl">Film aléatoire</h1>
           <p className="mt-4 max-w-2xl text-base font-medium text-slate-300">Choisis ton humeur, affine si tu veux, et laisse CineScope trouver le film.</p>
           {preferredGenres.length > 0 && <div className="mt-5 flex flex-wrap items-center gap-2"><span className="text-sm font-bold text-slate-400">Tes goûts :</span>{preferredGenres.map(g => <span key={g} className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-sm font-bold backdrop-blur">{g}</span>)}</div>}
         </div>
