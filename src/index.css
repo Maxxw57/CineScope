@@ -111,7 +111,29 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 :root[data-motion="subtle"] .page-enter { animation-duration: .18s; }
 :root[data-motion="cinematic"] .page-enter { animation-duration: .6s; }
 :root[data-motion="cinematic"] .cine-movie-card:hover { transform: translateY(-8px) scale(1.015); }
+/* Densité des cartes : le mode compact change réellement la taille et le nombre de films visibles. */
+:root[data-density="compact"] .cine-movie-grid {
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
+  gap: .85rem !important;
+}
 :root[data-density="compact"] .cine-movie-card { border-radius: 1rem; }
+:root[data-density="compact"] .cine-card-content { padding: .75rem; }
+:root[data-density="compact"] .cine-card-title { font-size: .9rem; line-height: 1.15rem; }
+:root[data-density="compact"] .cine-card-meta { margin-top: .2rem; font-size: .68rem; }
+:root[data-density="compact"] .cine-card-rating { right: .5rem; top: .5rem; padding: .2rem .45rem; font-size: .65rem; }
+:root[data-density="compact"] .cine-card-synopsis { display: none; }
+:root[data-density="compact"] .cine-card-actions { margin-top: .5rem; gap: .3rem; }
+:root[data-density="compact"] .cine-card-action { width: 2rem; height: 2rem; border-radius: .65rem; }
+@media (min-width: 768px) {
+  :root[data-density="compact"] .cine-movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)) !important;
+  }
+}
+@media (min-width: 1280px) {
+  :root[data-density="compact"] .cine-movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)) !important;
+  }
+}
 
 /* Panneau Apparence teinté selon la couleur CineScope sélectionnée */
 .cine-appearance-panel {

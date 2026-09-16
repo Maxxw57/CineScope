@@ -28,7 +28,7 @@ export default function ActorDetail() {
     </section>
     <div className="mx-auto max-w-6xl space-y-12 px-4 py-12 sm:px-6">
       <section><p className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">À propos</p><h2 className="mt-1 text-3xl font-black">Biographie</h2><p className="mt-5 max-w-4xl whitespace-pre-line text-base leading-8 text-gray-600 dark:text-gray-300">{actor.biography}</p></section>
-      {actor.movies.length > 0 && <section><p className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Filmographie</p><h2 className="mt-1 text-3xl font-black">Films connus</h2><p className="mt-2 text-gray-500 dark:text-gray-400">Découvrez les films les plus populaires avec {actor.name}.</p><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 md:gap-6">{actor.movies.map(movie => <MovieCard key={movie.id} movie={movie}/>)}</div></section>}
+      {actor.movies.length > 0 && <section><p className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Filmographie</p><h2 className="mt-1 text-3xl font-black">Films connus</h2><p className="mt-2 text-gray-500 dark:text-gray-400">Découvrez les films les plus populaires avec {actor.name}.</p><div className="cine-movie-grid mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 md:gap-6">{actor.movies.map(movie => <MovieCard key={movie.id} movie={movie}/>)}</div></section>}
     </div>
   </main>
 }

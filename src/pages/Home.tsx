@@ -16,7 +16,7 @@ function MovieSection({ title, eyebrow, movies }: { title: string; eyebrow: stri
         </div>
         <Link to="/films" className="text-sm font-bold text-blue-600 hover:underline dark:text-blue-400">Voir tout →</Link>
       </div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+      <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
         {movies.map(movie => <MovieCard key={movie.id} movie={movie} />)}
       </div>
     </section>
@@ -88,7 +88,7 @@ export default function Home() {
               <h2 className="mt-1 text-2xl font-black sm:text-3xl">Les films ajoutés manuellement</h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Cette sélection conserve les films locaux du projet.</p>
             </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+            <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
               {cineScopeSelection.map(movie => <MovieCard key={movie.id} movie={movie} localSource />)}
             </div>
           </section>

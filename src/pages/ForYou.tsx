@@ -59,7 +59,7 @@ export default function ForYou() {
       {loading && (
         <section className="mt-10">
           <div className="mb-5 h-8 w-72 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
                 <div className="aspect-[2/3] animate-pulse bg-gray-200 dark:bg-gray-800" />
@@ -96,7 +96,7 @@ export default function ForYou() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{section.subtitle}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
             {section.movies.map(movie => (
               <div key={movie.id} className="group/recommendation">
                 <MovieCard movie={movie} />

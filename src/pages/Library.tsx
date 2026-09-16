@@ -185,7 +185,7 @@ export default function Library() {
           <p className="mt-2 text-gray-500 dark:text-gray-400">Essayez une autre recherche ou un autre statut.</p>
         </div>
       ) : (
-        <div className={view === "grid" ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4" : "grid gap-5 md:grid-cols-2"}>
+        <div className={view === "grid" ? "cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4" : "grid gap-5 md:grid-cols-2"}>
           {filteredMovies.map(movie => <LibraryCard key={movie.id} movie={movie} />)}
         </div>
       )}

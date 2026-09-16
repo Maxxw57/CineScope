@@ -171,7 +171,7 @@ export default function Favorites() {
               </button>
             </section>
           ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+            <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {filteredFavorites.map(movie => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
