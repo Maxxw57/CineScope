@@ -36,3 +36,35 @@ button:active,.cine-button-primary:active,.cine-button-secondary:active { transf
 @keyframes modalIn { from{opacity:0;transform:translateY(12px) scale(.985)} to{opacity:1;transform:none} }
 @keyframes pageIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+
+/* Accent CineScope personnalisable */
+:root,
+:root[data-accent="blue"] { --cine-accent: 37 99 235; --cine-accent-hover: 59 130 246; --cine-accent-soft: 219 234 254; --cine-accent-dark-soft: 30 58 138; }
+:root[data-accent="violet"] { --cine-accent: 124 58 237; --cine-accent-hover: 139 92 246; --cine-accent-soft: 237 233 254; --cine-accent-dark-soft: 76 29 149; }
+:root[data-accent="red"] { --cine-accent: 220 38 38; --cine-accent-hover: 239 68 68; --cine-accent-soft: 254 226 226; --cine-accent-dark-soft: 127 29 29; }
+:root[data-accent="emerald"] { --cine-accent: 5 150 105; --cine-accent-hover: 16 185 129; --cine-accent-soft: 209 250 229; --cine-accent-dark-soft: 6 78 59; }
+:root[data-accent="amber"] { --cine-accent: 217 119 6; --cine-accent-hover: 245 158 11; --cine-accent-soft: 254 243 199; --cine-accent-dark-soft: 120 53 15; }
+
+body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accent) / .055), transparent 26rem); }
+:focus-visible { outline-color: rgb(var(--cine-accent)); }
+.cine-nav-link::after { background: rgb(var(--cine-accent)); }
+.cine-nav-link-active, .cine-eyebrow, .cine-accent-text { color: rgb(var(--cine-accent)) !important; }
+.cine-button-primary { background-color: rgb(var(--cine-accent)) !important; box-shadow: 0 10px 24px rgb(var(--cine-accent) / .20) !important; }
+.cine-button-primary:hover { background-color: rgb(var(--cine-accent-hover)) !important; }
+.cine-button-secondary:hover { border-color: rgb(var(--cine-accent) / .45) !important; color: rgb(var(--cine-accent)) !important; }
+.cine-movie-card:hover { box-shadow: 0 25px 50px -12px rgb(var(--cine-accent) / .16) !important; }
+.cine-accent-choice-active { border-color: rgb(var(--cine-accent)) !important; box-shadow: 0 12px 30px rgb(var(--cine-accent) / .12) !important; }
+.cine-accent-preview { border-color: rgb(var(--cine-accent) / .25); background: linear-gradient(135deg, rgb(var(--cine-accent) / .10), transparent 65%); }
+.cine-accent-chip { background: rgb(var(--cine-accent) / .12); color: rgb(var(--cine-accent)); }
+
+/* Les anciennes classes bleues du projet suivent maintenant l'accent choisi. */
+.bg-blue-600 { background-color: rgb(var(--cine-accent)) !important; }
+.hover\:bg-blue-500:hover { background-color: rgb(var(--cine-accent-hover)) !important; }
+.text-blue-600, .dark .dark\:text-blue-400 { color: rgb(var(--cine-accent)) !important; }
+.text-blue-400 { color: rgb(var(--cine-accent-hover)) !important; }
+.border-blue-400, .hover\:border-blue-400:hover { border-color: rgb(var(--cine-accent) / .7) !important; }
+.focus\:border-blue-500:focus { border-color: rgb(var(--cine-accent)) !important; }
+.focus\:ring-blue-500\/20:focus, .focus\:ring-blue-500\/10:focus { --tw-ring-color: rgb(var(--cine-accent) / .2) !important; }
+.shadow-blue-600\/20, .shadow-blue-600\/25 { --tw-shadow-color: rgb(var(--cine-accent) / .2) !important; }
+.from-blue-600 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }
+.from-blue-700 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }

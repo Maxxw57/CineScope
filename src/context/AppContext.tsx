@@ -6,6 +6,7 @@ import { useToast } from "./ToastContext"
 export type LibraryStatus = "watchlist" | "watching" | "watched"
 export type LibraryMovie = Movie & { status: LibraryStatus }
 export type HistoryEntry = { movie: Movie; source: "tmdb" | "local"; viewedAt: number }
+export type AccentColor = "blue" | "violet" | "red" | "emerald" | "amber"
 
 type FavoriteAction =
   | { type: "LOAD"; payload: Movie[] }
@@ -24,6 +25,8 @@ type AppContextType = {
   updateLibraryStatus: (id: number, status: LibraryStatus) => void
   theme: string
   toggleTheme: () => void
+  accentColor: AccentColor
+  setAccentColor: (accent: AccentColor) => void
   isLoggedIn: boolean
   ratings: Record<string, number>
   rateMovie: (movieKey: string, rating: number) => void
@@ -56,6 +59,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [library, setLibrary] = useState<LibraryMovie[]>([])
   const [movies, setMovies] = useState<Movie[]>([])
   const [theme, setTheme] = useState("light")
+  const [accentColor, setAccentColorState] = useState<AccentColor>("blue")
   const [ratings, setRatings] = useState<Record<string, number>>({})
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const { user } = useAuth()
@@ -66,6 +70,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const fav = localStorage.getItem("favorites")
     const lib = localStorage.getItem("library")
     const savedTheme = localStorage.getItem("theme")
+    const savedAccent = localStorage.getItem("accentColor") as AccentColor | null
 
     if (fav) {
       try {
@@ -86,6 +91,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (savedTheme) setTheme(savedTheme)
+    if (savedAccent && ["blue", "violet", "red", "emerald", "amber"].includes(savedAccent)) setAccentColorState(savedAccent)
 
     fetch("/movies.json")
       .then(res => {
@@ -107,6 +113,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark")
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.dataset.accent = accentColor
+  }, [accentColor])
 
   useEffect(() => {
     if (!user) {
@@ -164,6 +174,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newTheme = theme === "dark" ? "light" : "dark"
     setTheme(newTheme)
     localStorage.setItem("theme", newTheme)
+  }
+
+  const setAccentColor = (accent: AccentColor) => {
+    setAccentColorState(accent)
+    localStorage.setItem("accentColor", accent)
+    showToast("Couleur CineScope mise à jour.", "info")
   }
 
   const addFavorite = (movie: Movie) => {
@@ -251,6 +267,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       movies,
       theme,
       toggleTheme,
+      accentColor,
+      setAccentColor,
       isLoggedIn,
       addFavorite,
       removeFavorite,
