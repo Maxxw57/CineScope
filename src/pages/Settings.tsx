@@ -60,7 +60,7 @@ export default function Settings() {
   const destructive = (message: string, action: () => void) => { if (window.confirm(message)) action() }
   const resetRecommendations = () => { localStorage.removeItem("recommendations:ignored"); showToast("Recommandations réinitialisées.", "info") }
 
-  return <main className="page-enter mx-auto max-w-6xl px-5 py-10 sm:px-8">
+  return <main className="cine-settings-page page-enter mx-auto max-w-6xl px-5 py-10 sm:px-8">
     <div className="mb-8"><p className="cine-eyebrow">Centre de contrôle</p><h1 className="mt-2 text-4xl font-black tracking-tight">Paramètres</h1><p className="mt-2 text-gray-500 dark:text-gray-400">Personnalisez CineScope, ses recommandations et vos données.</p></div>
     <div className="space-y-6">
       <section className="cine-panel cine-appearance-panel"><h2 className="text-xl font-black">🎨 Apparence</h2><div className="mt-5 grid gap-5 lg:grid-cols-2">
