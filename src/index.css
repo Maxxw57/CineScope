@@ -195,3 +195,112 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
   position: relative;
   z-index: 1;
 }
+
+/* Intensité des effets V2 : chaque niveau change toute l'ambiance visuelle. */
+:root,
+:root[data-effect-intensity="normal"] {
+  --cine-fx-transition: 260ms;
+  --cine-fx-hover-lift: -6px;
+  --cine-fx-hover-scale: 1.008;
+  --cine-fx-card-shadow: .18;
+  --cine-fx-button-shadow: .24;
+  --cine-fx-panel-tint: .035;
+  --cine-fx-panel-border: .12;
+  --cine-fx-glow: .16;
+  --cine-fx-blur: 16px;
+  --cine-fx-saturation: 1.05;
+}
+:root[data-effect-intensity="subtle"] {
+  --cine-fx-transition: 150ms;
+  --cine-fx-hover-lift: -2px;
+  --cine-fx-hover-scale: 1;
+  --cine-fx-card-shadow: .07;
+  --cine-fx-button-shadow: .10;
+  --cine-fx-panel-tint: .012;
+  --cine-fx-panel-border: .07;
+  --cine-fx-glow: .07;
+  --cine-fx-blur: 8px;
+  --cine-fx-saturation: .92;
+}
+:root[data-effect-intensity="cinematic"] {
+  --cine-fx-transition: 430ms;
+  --cine-fx-hover-lift: -10px;
+  --cine-fx-hover-scale: 1.018;
+  --cine-fx-card-shadow: .34;
+  --cine-fx-button-shadow: .38;
+  --cine-fx-panel-tint: .075;
+  --cine-fx-panel-border: .20;
+  --cine-fx-glow: .32;
+  --cine-fx-blur: 24px;
+  --cine-fx-saturation: 1.18;
+}
+
+/* Transitions et interactions */
+:root:not([data-motion="off"]) button,
+:root:not([data-motion="off"]) a,
+:root:not([data-motion="off"]) input,
+:root:not([data-motion="off"]) select,
+:root:not([data-motion="off"]) .cine-panel,
+:root:not([data-motion="off"]) .cine-glass-card,
+:root:not([data-motion="off"]) .cine-movie-card {
+  transition-duration: var(--cine-fx-transition) !important;
+}
+:root:not([data-motion="off"]) .cine-movie-card:hover {
+  transform: translateY(var(--cine-fx-hover-lift)) scale(var(--cine-fx-hover-scale)) !important;
+}
+
+/* Profondeur, glow et couleur */
+.cine-movie-card:hover {
+  box-shadow: 0 28px 60px -18px rgb(var(--cine-accent) / var(--cine-fx-card-shadow)) !important;
+}
+.cine-button-primary {
+  box-shadow: 0 12px 30px rgb(var(--cine-accent) / var(--cine-fx-button-shadow)) !important;
+}
+.cine-panel,
+.cine-glass-card {
+  border-color: rgb(var(--cine-accent) / var(--cine-fx-panel-border));
+  box-shadow: 0 18px 45px -32px rgb(var(--cine-accent) / var(--cine-fx-glow));
+  backdrop-filter: blur(var(--cine-fx-blur));
+}
+.dark .cine-panel,
+.dark .cine-glass-card {
+  background-color: rgb(var(--cine-accent) / var(--cine-fx-panel-tint));
+}
+.cine-navbar {
+  backdrop-filter: blur(var(--cine-fx-blur)) saturate(var(--cine-fx-saturation));
+}
+.cine-accent-choice-active {
+  box-shadow: 0 12px 34px rgb(var(--cine-accent) / var(--cine-fx-glow)) !important;
+}
+
+/* Le panneau Apparence suit lui aussi réellement le niveau choisi. */
+.cine-appearance-panel {
+  background:
+    radial-gradient(circle at 88% 0%, rgb(var(--cine-accent) / var(--cine-settings-strong)), transparent 42%),
+    linear-gradient(135deg, rgb(var(--cine-accent) / var(--cine-settings-medium)), rgb(var(--cine-accent) / var(--cine-settings-soft)) 48%, transparent 78%),
+    rgb(255 255 255 / .82) !important;
+  box-shadow: 0 24px 60px -32px rgb(var(--cine-accent) / var(--cine-fx-glow));
+}
+.dark .cine-appearance-panel {
+  background:
+    radial-gradient(circle at 88% 0%, rgb(var(--cine-accent) / var(--cine-settings-strong)), transparent 43%),
+    linear-gradient(135deg, rgb(var(--cine-accent) / var(--cine-settings-medium)), rgb(var(--cine-accent) / var(--cine-settings-soft)) 48%, rgb(2 6 23 / .35) 82%),
+    rgb(10 15 28 / .90) !important;
+  box-shadow: 0 30px 75px -34px rgb(var(--cine-accent) / var(--cine-fx-glow));
+}
+
+/* En cinématique, l'accent gagne aussi en présence dans les éléments interactifs. */
+:root[data-effect-intensity="cinematic"] .cine-nav-link-active,
+:root[data-effect-intensity="cinematic"] .cine-eyebrow,
+:root[data-effect-intensity="cinematic"] .cine-accent-text {
+  text-shadow: 0 0 22px rgb(var(--cine-accent) / .28);
+}
+:root[data-effect-intensity="cinematic"] .cine-card-action,
+:root[data-effect-intensity="cinematic"] .cine-icon-button {
+  box-shadow: 0 10px 28px rgb(var(--cine-accent) / .18);
+}
+:root[data-effect-intensity="subtle"] .cine-nav-link-active,
+:root[data-effect-intensity="subtle"] .cine-eyebrow,
+:root[data-effect-intensity="subtle"] .cine-accent-text {
+  text-shadow: none;
+}
