@@ -15,6 +15,8 @@ import Search from "./pages/Search"
 import ActorDetail from "./pages/ActorDetail"
 import ForYou from "./pages/ForYou"
 import RandomMovie from "./pages/RandomMovie"
+import SeriesPage from "./pages/Series"
+import SeriesDetail from "./pages/SeriesDetail"
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/films" element={<Movies />} />
         <Route path="/films/:id" element={<MovieDetail />} />
+        <Route path="/series" element={<SeriesPage />} />
+        <Route path="/series/:id" element={<SeriesDetail />} />
         <Route path="/acteurs/:id" element={<ActorDetail />} />
         <Route path="/pour-vous" element={<ProtectedRoute><ForYou /></ProtectedRoute>} />
         <Route path="/film-aleatoire" element={<RandomMovie />} />

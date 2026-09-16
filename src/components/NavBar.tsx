@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext"
 const navItems = [
   { to: "/", label: "Accueil", icon: "⌂" },
   { to: "/films", label: "Films", icon: "▣" },
+  { to: "/series", label: "Séries", icon: "▦" },
   { to: "/pour-vous", label: "Pour vous", icon: "✦" },
   { to: "/film-aleatoire", label: "Aléatoire", icon: "⤨" },
   { to: "/search", label: "Recherche", icon: "⌕" },

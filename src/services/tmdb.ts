@@ -367,3 +367,115 @@ export async function getActorDetails(id: number): Promise<Actor> {
     movies,
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Séries TV
+// ─────────────────────────────────────────────────────────────
+import type { Series, SeriesEpisode } from "../types/Series"
+
+export type SeriesPage = {
+  series: Series[]
+  page: number
+  totalPages: number
+  totalResults: number
+}
+
+export type DiscoverSeriesFilters = {
+  genreId?: number
+  year?: number
+  minRating?: number
+  sortBy?: "popularity.desc" | "vote_average.desc" | "first_air_date.desc" | "name.asc"
+}
+
+type TmdbSeries = {
+  id: number
+  name: string
+  first_air_date?: string
+  vote_average?: number
+  vote_count?: number
+  genre_ids?: number[]
+  genres?: TmdbGenre[]
+  poster_path?: string | null
+  backdrop_path?: string | null
+  overview?: string
+  original_language?: string
+  origin_country?: string[]
+  production_countries?: { name: string }[]
+  status?: string
+  number_of_seasons?: number
+  number_of_episodes?: number
+  seasons?: { id: number; season_number: number; name: string; episode_count: number; air_date?: string; poster_path?: string | null; overview?: string }[]
+  credits?: { cast?: { id: number; name: string; character?: string; profile_path?: string | null }[] }
+  videos?: { results?: { key: string; site: string; type: string }[] }
+}
+
+type TmdbSeriesPage = { results: TmdbSeries[]; page: number; total_pages: number; total_results: number }
+
+let seriesGenreCache: Map<number, string> | null = null
+
+async function getSeriesGenreMap() {
+  if (seriesGenreCache) return seriesGenreCache
+  const data = await request<{ genres: TmdbGenre[] }>("/genre/tv/list?language=fr-FR")
+  seriesGenreCache = new Map(data.genres.map(genre => [genre.id, genre.name]))
+  return seriesGenreCache
+}
+
+function mapSeries(item: TmdbSeries, genreMap?: Map<number, string>): Series {
+  const genreNames = item.genres?.map(g => g.name) ?? item.genre_ids?.map(id => genreMap?.get(id)).filter((g): g is string => Boolean(g)) ?? []
+  const trailer = item.videos?.results?.find(video => video.site === "YouTube" && video.type === "Trailer")
+  return {
+    id: item.id,
+    title: item.name,
+    year: item.first_air_date ? Number(item.first_air_date.slice(0, 4)) : 0,
+    rating: Number((item.vote_average ?? 0).toFixed(1)),
+    voteCount: item.vote_count ?? 0,
+    genre: genreNames.join(", ") || "Genre inconnu",
+    genres: genreNames,
+    poster: posterUrl(item.poster_path),
+    backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : undefined,
+    synopsis: item.overview || "Aucune description disponible.",
+    originalLanguage: item.original_language,
+    productionCountries: item.production_countries?.map(c => c.name) ?? item.origin_country ?? [],
+    status: item.status,
+    seasonsCount: item.number_of_seasons,
+    episodesCount: item.number_of_episodes,
+    seasons: item.seasons?.filter(s => s.season_number > 0).map(s => ({ id: s.id, seasonNumber: s.season_number, name: s.name, episodeCount: s.episode_count, airDate: s.air_date, poster: posterUrl(s.poster_path), overview: s.overview })),
+    cast: item.credits?.cast?.slice(0, 8).map(a => a.name) ?? [],
+    castDetails: item.credits?.cast?.slice(0, 8).map(a => ({ id: a.id, name: a.name, character: a.character, profile: posterUrl(a.profile_path) })) ?? [],
+    trailer: trailer ? `https://www.youtube.com/embed/${trailer.key}` : undefined,
+  }
+}
+
+export async function getSeriesGenres(): Promise<TmdbGenre[]> {
+  const data = await request<{ genres: TmdbGenre[] }>("/genre/tv/list?language=fr-FR")
+  return data.genres
+}
+
+export async function discoverSeries(filters: DiscoverSeriesFilters = {}, page = 1): Promise<SeriesPage> {
+  const params = new URLSearchParams({ language: "fr-FR", include_adult: "false", page: String(page), sort_by: filters.sortBy ?? "popularity.desc" })
+  if (filters.genreId) params.set("with_genres", String(filters.genreId))
+  if (filters.year) params.set("first_air_date_year", String(filters.year))
+  if (filters.minRating) { params.set("vote_average.gte", String(filters.minRating)); params.set("vote_count.gte", "50") }
+  const [data, genres] = await Promise.all([request<TmdbSeriesPage>(`/discover/tv?${params}`), getSeriesGenreMap()])
+  return { series: data.results.map(s => mapSeries(s, genres)), page: data.page, totalPages: Math.min(data.total_pages, 500), totalResults: data.total_results }
+}
+
+export async function searchSeries(query: string, page = 1): Promise<SeriesPage> {
+  const [data, genres] = await Promise.all([request<TmdbSeriesPage>(`/search/tv?language=fr-FR&include_adult=false&query=${encodeURIComponent(query)}&page=${page}`), getSeriesGenreMap()])
+  return { series: data.results.map(s => mapSeries(s, genres)), page: data.page, totalPages: Math.min(data.total_pages, 500), totalResults: data.total_results }
+}
+
+export async function getSeriesDetails(id: number): Promise<Series> {
+  const item = await request<TmdbSeries>(`/tv/${id}?language=fr-FR&append_to_response=credits,videos`)
+  return mapSeries(item)
+}
+
+export async function getSimilarSeries(id: number, page = 1): Promise<SeriesPage> {
+  const [data, genres] = await Promise.all([request<TmdbSeriesPage>(`/tv/${id}/similar?language=fr-FR&page=${page}`), getSeriesGenreMap()])
+  return { series: data.results.map(s => mapSeries(s, genres)), page: data.page, totalPages: Math.min(data.total_pages, 500), totalResults: data.total_results }
+}
+
+export async function getSeasonEpisodes(seriesId: number, seasonNumber: number): Promise<SeriesEpisode[]> {
+  const data = await request<{ episodes?: { id: number; episode_number: number; name: string; overview?: string; air_date?: string; vote_average?: number; runtime?: number; still_path?: string | null }[] }>(`/tv/${seriesId}/season/${seasonNumber}?language=fr-FR`)
+  return (data.episodes ?? []).map(e => ({ id: e.id, episodeNumber: e.episode_number, name: e.name, overview: e.overview || "Aucune description disponible.", airDate: e.air_date, rating: Number((e.vote_average ?? 0).toFixed(1)), runtime: e.runtime, still: e.still_path ? `${IMAGE_URL}${e.still_path}` : "" }))
+}
