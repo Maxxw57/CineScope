@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react"
+import { createContext, useContext, useState, ReactNode } from "react"
 
 type User = {
   email: string
@@ -17,19 +17,29 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+function getSavedUser(): User | null {
+  const savedUser = localStorage.getItem("user")
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user")
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch {
-        localStorage.removeItem("user")
-      }
+  if (!savedUser) return null
+
+  try {
+    const parsed = JSON.parse(savedUser) as User
+
+    if (!parsed?.email || !parsed?.username) {
+      localStorage.removeItem("user")
+      return null
     }
-  }, [])
+
+    return parsed
+  } catch {
+    localStorage.removeItem("user")
+    return null
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  // Lecture immédiate de la session : évite d'afficher /login pendant un refresh.
+  const [user, setUser] = useState<User | null>(() => getSavedUser())
 
   const login = (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase()

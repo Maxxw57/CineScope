@@ -1,14 +1,18 @@
 import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
-import { useNavigate } from "react-router-dom"
+import { Navigate, useNavigate } from "react-router-dom"
 
 export default function Login() {
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+
+  if (user) {
+    return <Navigate to="/" replace />
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
