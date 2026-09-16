@@ -15,13 +15,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   private retry = () => {
-    // Un rechargement complet permet de repartir d'un état React propre.
     window.location.reload()
   }
 
   private goHome = () => {
-    // On force une vraie navigation : un <Link> seul ne peut pas quitter
-    // le fallback tant que l'ErrorBoundary reste dans l'état hasError.
     window.location.assign("/")
   }
 
