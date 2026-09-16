@@ -410,3 +410,42 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 .cine-modal {
   box-shadow: 0 32px 90px -20px rgb(var(--cine-accent) / var(--cine-fx-glow));
 }
+
+/* Navbar V4 : l'ambiance de couleur et l'intensité des effets remontent aussi dans la barre du haut. */
+.cine-navbar {
+  background:
+    radial-gradient(ellipse 46rem 9rem at 16% -15%, rgb(var(--cine-accent) / calc(var(--cine-bg-strong) * .82)), transparent 72%),
+    radial-gradient(ellipse 42rem 8rem at 78% 115%, rgb(var(--cine-accent) / calc(var(--cine-bg-medium) * .72)), transparent 74%),
+    linear-gradient(90deg, rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .75)), transparent 38%, rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .55))),
+    rgb(255 255 255 / .82) !important;
+  border-bottom-color: rgb(var(--cine-accent) / var(--cine-fx-panel-border)) !important;
+  box-shadow: 0 12px 38px -30px rgb(var(--cine-accent) / var(--cine-fx-glow));
+  backdrop-filter: blur(var(--cine-fx-blur)) saturate(var(--cine-fx-saturation));
+  transition: background var(--cine-fx-transition) ease, border-color var(--cine-fx-transition) ease, box-shadow var(--cine-fx-transition) ease, backdrop-filter var(--cine-fx-transition) ease;
+}
+.dark .cine-navbar {
+  background:
+    radial-gradient(ellipse 46rem 9rem at 16% -15%, rgb(var(--cine-accent) / calc(var(--cine-bg-strong) * .95)), transparent 72%),
+    radial-gradient(ellipse 42rem 8rem at 78% 115%, rgb(var(--cine-accent) / calc(var(--cine-bg-medium) * .82)), transparent 74%),
+    linear-gradient(90deg, rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .95)), transparent 38%, rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .72))),
+    rgb(3 7 18 / .80) !important;
+}
+.cine-navbar-scrolled {
+  box-shadow:
+    0 14px 38px -26px rgb(15 23 42 / .28),
+    0 10px 34px -25px rgb(var(--cine-accent) / var(--cine-fx-glow)) !important;
+}
+
+/* Le menu déroulant mobile garde la même ambiance que la navbar. */
+.cine-navbar > div.lg\:hidden {
+  background:
+    linear-gradient(135deg, rgb(var(--cine-accent) / calc(var(--cine-bg-medium) * .70)), transparent 58%),
+    rgb(255 255 255 / .91) !important;
+  border-color: rgb(var(--cine-accent) / var(--cine-fx-panel-border)) !important;
+  backdrop-filter: blur(var(--cine-fx-blur)) saturate(var(--cine-fx-saturation));
+}
+.dark .cine-navbar > div.lg\:hidden {
+  background:
+    linear-gradient(135deg, rgb(var(--cine-accent) / calc(var(--cine-bg-medium) * .82)), transparent 58%),
+    rgb(3 7 18 / .91) !important;
+}
