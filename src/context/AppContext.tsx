@@ -92,7 +92,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (lib) {
       try {
         const savedLibrary = JSON.parse(lib) as Array<Movie & { status?: LibraryStatus }>
-        // Compatibilité avec l'ancienne bibliothèque : les films existants deviennent "À regarder".
         setLibrary(savedLibrary.map(movie => ({ ...movie, status: movie.status ?? "watchlist" })))
       } catch {
         localStorage.removeItem("library")
@@ -140,8 +139,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.motion = preferences.animations ? preferences.motionLevel : "off"
-    // L’intensité visuelle reste indépendante du bouton Animations :
-    // elle pilote notamment la puissance du dégradé global CineScope.
     document.documentElement.dataset.effectIntensity = preferences.motionLevel
     document.documentElement.dataset.density = preferences.cardDensity
     localStorage.setItem("cinePreferences", JSON.stringify(preferences))
@@ -273,7 +270,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       showToast("Vous devez être connecté pour noter un film.", "error")
       return
     }
-    if (rating < 1 || rating > 5) return
+    if (rating < 0 || rating > 5) return
     setRatings(current => ({ ...current, [movieKey]: rating }))
     showToast(`Note enregistrée : ${rating}/5.`)
   }
