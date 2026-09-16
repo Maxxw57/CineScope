@@ -32,7 +32,7 @@ function uniqueMovies(movies: Movie[], excluded: Set<number>) {
 }
 
 export function usePersonalizedRecommendations() {
-  const { library, favorites, history } = useApp()
+  const { library, favorites, history, ratings, preferences } = useApp()
   const [sections, setSections] = useState<RecommendationSection[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -46,19 +46,28 @@ export function usePersonalizedRecommendations() {
   })
 
   const profile = useMemo(() => {
-    const libraryGenres = topGenres(library)
-    const favoriteGenres = topGenres(favorites)
-    const recentGenres = topGenres(history.slice(0, 10).map(entry => entry.movie), 2)
-    const preferredGenres = [...new Set([...libraryGenres, ...favoriteGenres, ...recentGenres])].slice(0, 5)
+    const librarySource = preferences.recommendations.useLibrary ? library : []
+    const favoriteSource = preferences.recommendations.useFavorites ? favorites : []
+    const historySource = preferences.recommendations.useHistory ? history.slice(0, 10).map(entry => entry.movie) : []
+    const highlyRated = preferences.recommendations.useRatings
+      ? [...library, ...favorites].filter(movie => (ratings[`tmdb:${movie.id}`] ?? ratings[`local:${movie.id}`] ?? 0) >= 4)
+      : []
+    const libraryGenres = topGenres([...librarySource, ...highlyRated])
+    const favoriteGenres = topGenres([...favoriteSource, ...highlyRated])
+    const recentGenres = topGenres(historySource, 2)
+    const preferredGenres = [...new Set([...preferences.favoriteGenres, ...libraryGenres, ...favoriteGenres, ...recentGenres])]
+      .filter(genre => !preferences.avoidedGenres.includes(genre)).slice(0, 5)
+    const watchedIds = preferences.recommendations.hideWatched ? library.filter(movie => movie.status === "watched").map(movie => movie.id) : []
     const knownIds = [...new Set([
-      ...library.map(movie => movie.id),
-      ...favorites.map(movie => movie.id),
-      ...history.map(entry => entry.movie.id),
+      ...librarySource.map(movie => movie.id),
+      ...favoriteSource.map(movie => movie.id),
+      ...historySource.map(movie => movie.id),
+      ...watchedIds,
       ...ignoredIds,
     ])]
 
     return { libraryGenres, favoriteGenres, preferredGenres, knownIds }
-  }, [library, favorites, history, ignoredIds])
+  }, [library, favorites, history, ignoredIds, preferences, ratings])
 
   useEffect(() => {
     let cancelled = false
@@ -71,7 +80,7 @@ export function usePersonalizedRecommendations() {
         const page = (refreshKey % 15) + 1
         const requests: Promise<{ id: RecommendationSection["id"]; title: string; subtitle: string; movies: Movie[] }>[] = []
 
-        if (library.length > 0) {
+        if (preferences.recommendations.useLibrary && library.length > 0) {
           requests.push(
             getPersonalizedRecommendations(profile.libraryGenres, profile.knownIds, page).then(result => ({
               id: "library" as const,
@@ -82,7 +91,7 @@ export function usePersonalizedRecommendations() {
           )
         }
 
-        if (favorites.length > 0) {
+        if (preferences.recommendations.useFavorites && favorites.length > 0) {
           requests.push(
             getPersonalizedRecommendations(profile.favoriteGenres, profile.knownIds, ((page + 4) % 15) + 1).then(result => ({
               id: "favorites" as const,
@@ -114,7 +123,11 @@ export function usePersonalizedRecommendations() {
         const alreadyShown = new Set(profile.knownIds)
         setSections(results.map(section => ({
           ...section,
-          movies: uniqueMovies(section.movies, alreadyShown).slice(0, 8),
+          movies: uniqueMovies(section.movies, alreadyShown)
+            .filter(movie => movie.rating >= preferences.minimumTmdbRating)
+            .filter(movie => !movieGenres(movie).some(genre => preferences.avoidedGenres.includes(genre)))
+            .filter(movie => preferences.languages.length === 0 || !movie.originalLanguage || preferences.languages.includes(movie.originalLanguage))
+            .slice(0, 8),
         })).filter(section => section.movies.length > 0))
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Impossible de charger les recommandations.")
@@ -125,7 +138,7 @@ export function usePersonalizedRecommendations() {
 
     void load()
     return () => { cancelled = true }
-  }, [profile, refreshKey, library.length, favorites.length])
+  }, [profile, refreshKey, library.length, favorites.length, preferences])
 
   const ignoreMovie = (id: number) => {
     setIgnoredIds(current => {
@@ -142,7 +155,7 @@ export function usePersonalizedRecommendations() {
   return {
     sections,
     preferredGenres: profile.preferredGenres,
-    hasPersonalData: library.length > 0 || favorites.length > 0,
+    hasPersonalData: profile.preferredGenres.length > 0,
     loading,
     error,
     ignoreMovie,

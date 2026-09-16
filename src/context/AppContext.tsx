@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useReducer, useState
 import { Movie } from "../types/Movie"
 import { useAuth } from "./AuthContext"
 import { useToast } from "./ToastContext"
+import { CinePreferences, defaultPreferences } from "../types/Preferences"
 
 export type LibraryStatus = "watchlist" | "watching" | "watched"
 export type LibraryMovie = Movie & { status: LibraryStatus }
@@ -35,6 +36,12 @@ type AppContextType = {
   history: HistoryEntry[]
   recordMovieView: (movie: Movie, source: "tmdb" | "local") => void
   clearHistory: () => void
+  clearFavorites: () => void
+  clearLibrary: () => void
+  clearRatings: () => void
+  preferences: CinePreferences
+  updatePreferences: (patch: Partial<CinePreferences>) => void
+  resetPreferences: () => void
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -62,6 +69,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [accentColor, setAccentColorState] = useState<AccentColor>("blue")
   const [ratings, setRatings] = useState<Record<string, number>>({})
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [preferences, setPreferences] = useState<CinePreferences>(defaultPreferences)
   const { user } = useAuth()
   const { showToast } = useToast()
   const isLoggedIn = !!user
@@ -71,6 +79,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const lib = localStorage.getItem("library")
     const savedTheme = localStorage.getItem("theme")
     const savedAccent = localStorage.getItem("accentColor") as AccentColor | null
+    const savedPreferences = localStorage.getItem("cinePreferences")
 
     if (fav) {
       try {
@@ -92,6 +101,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (savedTheme) setTheme(savedTheme)
     if (savedAccent && ["blue", "violet", "red", "emerald", "amber"].includes(savedAccent)) setAccentColorState(savedAccent)
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences) as Partial<CinePreferences>
+        setPreferences({ ...defaultPreferences, ...parsed, recommendations: { ...defaultPreferences.recommendations, ...parsed.recommendations }, notifications: { ...defaultPreferences.notifications, ...parsed.notifications }, playback: { ...defaultPreferences.playback, ...parsed.playback }, library: { ...defaultPreferences.library, ...parsed.library } })
+      } catch { localStorage.removeItem("cinePreferences") }
+    }
 
     fetch("/movies.json")
       .then(res => {
@@ -111,8 +126,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [library])
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark")
-  }, [theme])
+    const applyTheme = () => {
+      const mode = preferences.themeMode ?? (theme === "dark" ? "dark" : "light")
+      const dark = mode === "dark" || (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.toggle("dark", dark)
+      setTheme(dark ? "dark" : "light")
+    }
+    applyTheme()
+    const media = window.matchMedia("(prefers-color-scheme: dark)")
+    media.addEventListener("change", applyTheme)
+    return () => media.removeEventListener("change", applyTheme)
+  }, [preferences.themeMode])
+
+  useEffect(() => {
+    document.documentElement.dataset.motion = preferences.animations ? preferences.motionLevel : "off"
+    document.documentElement.dataset.density = preferences.cardDensity
+    localStorage.setItem("cinePreferences", JSON.stringify(preferences))
+  }, [preferences])
 
   useEffect(() => {
     document.documentElement.dataset.accent = accentColor
@@ -173,7 +203,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
     setTheme(newTheme)
+    setPreferences(current => ({ ...current, themeMode: newTheme }))
     localStorage.setItem("theme", newTheme)
+  }
+
+  const updatePreferences = (patch: Partial<CinePreferences>) => {
+    setPreferences(current => ({ ...current, ...patch }))
+  }
+
+  const resetPreferences = () => {
+    setPreferences(defaultPreferences)
+    showToast("Préférences CineScope réinitialisées.", "info")
   }
 
   const setAccentColor = (accent: AccentColor) => {
@@ -207,7 +247,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (library.some(item => item.id === movie.id)) return
-    setLibrary(current => [...current, { ...movie, status: "watchlist" }])
+    setLibrary(current => [...current, { ...movie, status: preferences.library.defaultStatus }])
     showToast(`« ${movie.title} » ajouté à la bibliothèque.`)
   }
 
@@ -255,6 +295,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     ].slice(0, 20))
   }, [isLoggedIn])
 
+  const clearFavorites = useCallback(() => {
+    dispatchFavorites({ type: "LOAD", payload: [] })
+    showToast("Favoris vidés.", "info")
+  }, [showToast])
+
+  const clearLibrary = useCallback(() => {
+    setLibrary([])
+    showToast("Bibliothèque vidée.", "info")
+  }, [showToast])
+
+  const clearRatings = useCallback(() => {
+    setRatings({})
+    if (user) localStorage.removeItem(`ratings:${user.email}`)
+    showToast("Toutes vos notes ont été supprimées.", "info")
+  }, [showToast, user])
+
   const clearHistory = useCallback(() => {
     setHistory([])
     showToast("Historique des films consultés effacé.", "info")
@@ -283,6 +339,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       history,
       recordMovieView,
       clearHistory,
+      clearFavorites,
+      clearLibrary,
+      clearRatings,
+      preferences,
+      updatePreferences,
+      resetPreferences,
     }}>
       {children}
     </AppContext.Provider>

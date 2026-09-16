@@ -18,12 +18,15 @@ function movieGenres(movie: Movie) {
 }
 
 export function useRandomMovie() {
-  const { library } = useApp()
+  const { library, preferences } = useApp()
   const [movie, setMovie] = useState<Movie | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<RandomMode>("surprise")
-  const [filters, setFilters] = useState<RandomFilters>({})
+  const [mode, setMode] = useState<RandomMode>(() => preferences.randomDefaultMode)
+  const [filters, setFilters] = useState<RandomFilters>(() => ({
+    maxDuration: preferences.randomMaxDuration,
+    minRating: preferences.randomMinRating || preferences.minimumTmdbRating,
+  }))
   const [genres, setGenres] = useState<{ id: number; name: string }[]>([])
 
   const hasLibrary = library.length > 0
@@ -36,8 +39,9 @@ export function useRandomMovie() {
       const weight = item.status === "watched" ? 5 : item.status === "watching" ? 3 : 1
       movieGenres(item).forEach(genre => scores.set(genre, (scores.get(genre) ?? 0) + weight))
     })
-    return [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([genre]) => genre)
-  }, [library])
+    preferences.favoriteGenres.forEach(genre => scores.set(genre, (scores.get(genre) ?? 0) + 6))
+    return [...scores.entries()].filter(([genre]) => !preferences.avoidedGenres.includes(genre)).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([genre]) => genre)
+  }, [library, preferences.favoriteGenres, preferences.avoidedGenres])
 
   useEffect(() => {
     getMovieGenres().then(setGenres).catch(() => setGenres([]))
@@ -67,10 +71,10 @@ export function useRandomMovie() {
 
       const result = await getRandomMovie({
         preferredGenres: mode === "tastes" ? preferredGenres : [],
-        excludedIds: library.map(item => item.id),
+        excludedIds: preferences.randomExcludeWatched ? library.filter(item => item.status === "watched").map(item => item.id) : library.map(item => item.id),
         genreId: filters.genreId,
         maxDuration: mode === "short" ? Math.min(filters.maxDuration ?? 100, 100) : filters.maxDuration,
-        minRating: mode === "top" ? Math.max(filters.minRating ?? 7.5, 7.5) : filters.minRating,
+        minRating: mode === "top" ? Math.max(filters.minRating ?? 7.5, 7.5) : Math.max(filters.minRating ?? 0, preferences.minimumTmdbRating),
       })
       if (!result) throw new Error("Aucun film disponible pour ce tirage. Essaie avec moins de filtres.")
       setMovie(result)
@@ -81,7 +85,7 @@ export function useRandomMovie() {
       if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining))
       setLoading(false)
     }
-  }, [filters, library, mode, preferredGenres])
+  }, [filters, library, mode, preferredGenres, preferences.minimumTmdbRating, preferences.randomExcludeWatched])
 
   useEffect(() => { void draw() }, [draw])
 

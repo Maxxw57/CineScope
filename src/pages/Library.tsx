@@ -53,10 +53,11 @@ function LibraryCard({ movie }: { movie: LibraryMovie }) {
 }
 
 export default function Library() {
-  const { library } = useApp()
+  const { library, preferences } = useApp()
   const [activeStatus, setActiveStatus] = useState<FilterStatus>("all")
   const [query, setQuery] = useState("")
-  const [sort, setSort] = useState<SortOption>("recent")
+  const [sort, setSort] = useState<SortOption>(() => preferences.library.defaultSort)
+  const [view, setView] = useState<"grid" | "list">(() => preferences.library.defaultView)
 
   const counts = useMemo(() => ({
     all: library.length,
@@ -136,6 +137,10 @@ export default function Library() {
               className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-9 pr-4 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-950"
             />
           </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setView("grid")} className={`rounded-xl border px-3 py-2 font-black ${view === "grid" ? "border-blue-500 text-blue-600" : "border-gray-200 dark:border-gray-700"}`}>▦</button>
+            <button type="button" onClick={() => setView("list")} className={`rounded-xl border px-3 py-2 font-black ${view === "list" ? "border-blue-500 text-blue-600" : "border-gray-200 dark:border-gray-700"}`}>☷</button>
+          </div>
           <select
             value={sort}
             onChange={event => setSort(event.target.value as SortOption)}
@@ -180,7 +185,7 @@ export default function Library() {
           <p className="mt-2 text-gray-500 dark:text-gray-400">Essayez une autre recherche ou un autre statut.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+        <div className={view === "grid" ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4" : "grid gap-5 md:grid-cols-2"}>
           {filteredMovies.map(movie => <LibraryCard key={movie.id} movie={movie} />)}
         </div>
       )}

@@ -23,9 +23,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const showToast = useCallback((message: string, type: ToastType = "success") => {
-    const id = ++nextId.current
-    setToasts(current => [...current, { id, message, type }])
-    window.setTimeout(() => removeToast(id), 3000)
+    try {
+      const raw = localStorage.getItem("cinePreferences")
+      const prefs = raw ? JSON.parse(raw)?.notifications : null
+      if (prefs?.enabled === false || prefs?.[type] === false) return
+      const id = ++nextId.current
+      setToasts(current => [...current, { id, message, type }])
+      const duration = Math.min(10000, Math.max(1000, Number(prefs?.duration) || 3000))
+      window.setTimeout(() => removeToast(id), duration)
+    } catch {
+      const id = ++nextId.current
+      setToasts(current => [...current, { id, message, type }])
+      window.setTimeout(() => removeToast(id), 3000)
+    }
   }, [removeToast])
 
   return (

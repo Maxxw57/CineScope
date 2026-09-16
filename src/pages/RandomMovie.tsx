@@ -20,7 +20,7 @@ function formatDuration(minutes?: number) {
 }
 
 export default function RandomMovie() {
-  const { favorites, library, addFavorite, removeFavorite, addToLibrary, removeFromLibrary } = useApp()
+  const { favorites, library, addFavorite, removeFavorite, addToLibrary, removeFromLibrary, preferences } = useApp()
   const { movie, loading, error, draw, preferredGenres, hasLibrary, mode, setMode, filters, setFilters, genres, updateGenre, resetFilters } = useRandomMovie()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [trailerOpen, setTrailerOpen] = useState(false)
@@ -49,6 +49,15 @@ export default function RandomMovie() {
     setTrailerOpen(false)
     await draw()
   }
+  const openTrailer = () => {
+    if (!movie?.trailer) return
+    if (preferences.playback.trailerTarget === "youtube") {
+      const external = movie.trailer.replace("youtube.com/embed/", "youtube.com/watch?v=").split("?")[0]
+      window.open(external, "_blank", "noopener,noreferrer")
+    } else setTrailerOpen(true)
+  }
+  const trailerSrc = movie?.trailer ? `${movie.trailer}${movie.trailer.includes("?") ? "&" : "?"}enablejsapi=1&autoplay=${preferences.playback.autoplayTrailers ? 1 : 0}` : ""
+  const setTrailerVolume = (event: React.SyntheticEvent<HTMLIFrameElement>) => event.currentTarget.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [preferences.playback.volume] }), "*")
 
   return (
     <main className="page-enter mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -101,14 +110,14 @@ export default function RandomMovie() {
               <div className="mt-4 flex flex-wrap gap-2">{(movie.genres?.length ? movie.genres : movie.genre.split(",")).slice(0, 5).map(g => <span key={g} className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur">{g.trim()}</span>)}</div>
               <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{movie.synopsis}</p>
               {mode === "tastes" && preferredGenres.length > 0 && <div className="mt-5 rounded-2xl border border-pink-400/15 bg-pink-400/5 p-4"><p className="text-sm font-black text-pink-200">❤️ Pourquoi ce film ?</p><p className="mt-1 text-sm text-slate-300">Parce que ta bibliothèque montre un intérêt pour <strong className="text-white">{preferredGenres.join(" · ")}</strong>.</p></div>}
-              <div className="mt-6 flex flex-wrap gap-3"><button type="button" onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)} className={`rounded-xl px-4 py-3 text-sm font-black transition ${isFavorite ? "bg-pink-500/20 text-pink-200 ring-1 ring-pink-400/30" : "bg-white/10 hover:bg-white/15"}`}>{isFavorite ? "♥ Favori" : "♡ Favori"}</button><button type="button" onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)} className={`rounded-xl px-4 py-3 text-sm font-black transition ${isInLibrary ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30" : "bg-white/10 hover:bg-white/15"}`}>{isInLibrary ? "✓ Ma liste" : "+ Ma liste"}</button>{movie.trailer && <button type="button" onClick={() => setTrailerOpen(true)} className="rounded-xl bg-white/10 px-4 py-3 text-sm font-black transition hover:bg-white/15">▶ Bande-annonce</button>}</div>
+              <div className="mt-6 flex flex-wrap gap-3"><button type="button" onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)} className={`rounded-xl px-4 py-3 text-sm font-black transition ${isFavorite ? "bg-pink-500/20 text-pink-200 ring-1 ring-pink-400/30" : "bg-white/10 hover:bg-white/15"}`}>{isFavorite ? "♥ Favori" : "♡ Favori"}</button><button type="button" onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)} className={`rounded-xl px-4 py-3 text-sm font-black transition ${isInLibrary ? "bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30" : "bg-white/10 hover:bg-white/15"}`}>{isInLibrary ? "✓ Ma liste" : "+ Ma liste"}</button>{movie.trailer && <button type="button" onClick={openTrailer} className="rounded-xl bg-white/10 px-4 py-3 text-sm font-black transition hover:bg-white/15">▶ Bande-annonce</button>}</div>
               <div className="mt-7 flex flex-wrap gap-3"><button type="button" onClick={handleDraw} className="rounded-xl bg-blue-600 px-6 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-blue-500">🎲 Un autre film</button><Link to={`/films/${movie.id}`} className="rounded-xl border border-white/20 px-6 py-3 text-center font-black transition hover:bg-white/10">Voir la fiche →</Link></div>
             </div>
           </div>
         </div>
       </section>}
 
-      {movie && <CineModal open={trailerOpen && Boolean(movie.trailer)} onClose={() => setTrailerOpen(false)} title={`Bande-annonce — ${movie.title}`}><div className="aspect-video bg-black">{movie.trailer && <iframe src={movie.trailer} title={`Bande-annonce de ${movie.title}`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="h-full w-full" />}</div></CineModal>}
+      {movie && <CineModal open={trailerOpen && Boolean(movie.trailer)} onClose={() => setTrailerOpen(false)} title={`Bande-annonce — ${movie.title}`}><div className="aspect-video bg-black">{movie.trailer && <iframe src={trailerSrc} onLoad={setTrailerVolume} title={`Bande-annonce de ${movie.title}`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="h-full w-full" />}</div></CineModal>}
     </main>
   )
 }

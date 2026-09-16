@@ -10,7 +10,7 @@ function formatDuration(minutes?: number) { if (!minutes) return null; const h =
 
 export default function MovieDetail() {
   const { id } = useParams(); const [searchParams] = useSearchParams(); const [trailerOpen, setTrailerOpen] = useState(false)
-  const { movies, favorites, library, addFavorite, removeFavorite, addToLibrary, removeFromLibrary, isLoggedIn, rateMovie, removeRating, getMovieRating, recordMovieView } = useApp()
+  const { movies, favorites, library, addFavorite, removeFavorite, addToLibrary, removeFromLibrary, isLoggedIn, rateMovie, removeRating, getMovieRating, recordMovieView, preferences } = useApp()
   const movieId = id ? Number(id) : null; const isLocal = searchParams.get("source") === "local"; const localMovie = isLocal && movieId !== null ? movies.find(item => item.id === movieId) ?? null : null
   const tmdb = useTmdbMovie(movieId, !isLocal); const similar = useTmdbSimilarMovies(movieId, !isLocal); const movie = isLocal ? localMovie : tmdb.movie
   const loading = isLocal ? movies.length === 0 : tmdb.loading; const error = isLocal ? (!loading && !localMovie ? "not-found" : null) : tmdb.error
@@ -20,6 +20,16 @@ export default function MovieDetail() {
   if (!movie || error) return <main className="page-enter mx-auto max-w-4xl px-4 py-20 text-center"><p className="text-5xl">🎞️</p><h1 className="mt-4 text-3xl font-black">{error === "not-found" ? "Film introuvable" : "Impossible de charger ce film."}</h1><div className="mt-6 flex justify-center gap-3">{error === "network" && <button onClick={tmdb.retry} className="cine-button-primary">Réessayer</button>}<Link to="/films" className="cine-button-secondary">Retour aux films</Link></div></main>
 
   const isFavorite = favorites.some(item => item.id === movie.id); const isInLibrary = library.some(item => item.id === movie.id); const duration = formatDuration(movie.duration)
+  const openTrailer = () => {
+    if (!movie.trailer) return
+    if (preferences.playback.trailerTarget === "youtube") {
+      const external = movie.trailer.replace("youtube.com/embed/", "youtube.com/watch?v=").split("?")[0]
+      window.open(external, "_blank", "noopener,noreferrer")
+    } else setTrailerOpen(true)
+  }
+  const trailerSrc = movie.trailer ? `${movie.trailer}${movie.trailer.includes("?") ? "&" : "?"}enablejsapi=1&autoplay=${preferences.playback.autoplayTrailers ? 1 : 0}` : ""
+  const setTrailerVolume = (event: React.SyntheticEvent<HTMLIFrameElement>) => event.currentTarget.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [preferences.playback.volume] }), "*")
+
   const genres = movie.genres?.length ? movie.genres : movie.genre.split(",").map(g => g.trim()).filter(Boolean); const ratingKey = `${isLocal ? "local" : "tmdb"}:${movie.id}`; const personalRating = getMovieRating(ratingKey)
 
   return <main className="page-enter pb-16">
@@ -34,7 +44,7 @@ export default function MovieDetail() {
           <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl">{movie.title}</h1>
           <div className="mt-5 flex flex-wrap items-center gap-3 text-sm font-bold text-white/75"><span>{movie.year || "Date inconnue"}</span>{duration && <><span>•</span><span>{duration}</span></>}<span>•</span><span className="rounded-lg bg-yellow-400/15 px-2.5 py-1 text-yellow-300">★ {movie.rating}/10</span>{movie.voteCount !== undefined && <span className="font-medium text-white/50">{movie.voteCount.toLocaleString("fr-FR")} votes</span>}</div>
           <p className="mt-6 max-w-3xl text-base leading-8 text-white/75 sm:text-lg">{movie.synopsis}</p>
-          <div className="mt-7 flex flex-wrap gap-3"><button onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)} className={isFavorite ? "cine-hero-button bg-pink-500/20 text-pink-200 ring-pink-300/20" : "cine-hero-button bg-blue-600 text-white ring-blue-400/20"}>{isFavorite ? "♥ Dans les favoris" : "♡ Favori"}</button><button onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)} className="cine-hero-button bg-white/10 text-white ring-white/15">{isInLibrary ? "✓ Dans ma bibliothèque" : "+ Ma bibliothèque"}</button>{movie.trailer && <button onClick={() => setTrailerOpen(true)} className="cine-hero-button bg-white text-slate-950 ring-white/30">▶ Bande-annonce</button>}</div>
+          <div className="mt-7 flex flex-wrap gap-3"><button onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)} className={isFavorite ? "cine-hero-button bg-pink-500/20 text-pink-200 ring-pink-300/20" : "cine-hero-button bg-blue-600 text-white ring-blue-400/20"}>{isFavorite ? "♥ Dans les favoris" : "♡ Favori"}</button><button onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)} className="cine-hero-button bg-white/10 text-white ring-white/15">{isInLibrary ? "✓ Dans ma bibliothèque" : "+ Ma bibliothèque"}</button>{movie.trailer && <button onClick={openTrailer} className="cine-hero-button bg-white text-slate-950 ring-white/30">▶ Bande-annonce</button>}</div>
         </div>
       </div>
     </section>
@@ -48,6 +58,6 @@ export default function MovieDetail() {
       {!isLocal && (similar.loading || similar.movies.length > 0) && <section className="rounded-[2rem] bg-gray-100/70 p-6 dark:bg-white/[.035] sm:p-8"><div className="flex items-end justify-between gap-4"><div><p className="cine-eyebrow">À découvrir</p><h2 className="mt-1 text-3xl font-black">Films similaires</h2></div><Link to="/films" className="text-sm font-black text-blue-600 dark:text-blue-400">Voir plus →</Link></div>{similar.loading ? <div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800"/>)}</div> : <div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">{similar.movies.map(m => <MovieCard key={m.id} movie={m}/>)}</div>}</section>}
     </div>
 
-    <CineModal open={trailerOpen} onClose={() => setTrailerOpen(false)} title={`Bande-annonce — ${movie.title}`}><div className="aspect-video bg-black">{movie.trailer && <iframe src={`${movie.trailer}${movie.trailer.includes("?") ? "&" : "?"}autoplay=1`} title={`Bande-annonce de ${movie.title}`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="h-full w-full"/>}</div></CineModal>
+    <CineModal open={trailerOpen} onClose={() => setTrailerOpen(false)} title={`Bande-annonce — ${movie.title}`}><div className="aspect-video bg-black">{movie.trailer && <iframe src={trailerSrc} onLoad={setTrailerVolume} title={`Bande-annonce de ${movie.title}`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="h-full w-full"/>}</div></CineModal>
   </main>
 }

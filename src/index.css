@@ -68,3 +68,13 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 .shadow-blue-600\/20, .shadow-blue-600\/25 { --tw-shadow-color: rgb(var(--cine-accent) / .2) !important; }
 .from-blue-600 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }
 .from-blue-700 { --tw-gradient-from: rgb(var(--cine-accent)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--cine-accent) / 0) var(--tw-gradient-to-position) !important; }
+
+/* Réglages utilisateur */
+.cine-settings-input { @apply mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-950; }
+.cine-pref-chip { @apply rounded-full border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:border-blue-400 dark:border-white/10 dark:text-gray-300; }
+.cine-pref-chip-active { border-color: rgb(var(--cine-accent)) !important; background: rgb(var(--cine-accent) / .12) !important; color: rgb(var(--cine-accent)) !important; }
+:root[data-motion="off"] *, :root[data-motion="off"] *::before, :root[data-motion="off"] *::after { animation: none !important; transition-duration: 0ms !important; scroll-behavior: auto !important; }
+:root[data-motion="subtle"] .page-enter { animation-duration: .18s; }
+:root[data-motion="cinematic"] .page-enter { animation-duration: .6s; }
+:root[data-motion="cinematic"] .cine-movie-card:hover { transform: translateY(-8px) scale(1.015); }
+:root[data-density="compact"] .cine-movie-card { border-radius: 1rem; }
