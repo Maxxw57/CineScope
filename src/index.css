@@ -468,3 +468,50 @@ body { background-image: radial-gradient(circle at 10% 10%, rgb(var(--cine-accen
 :root[data-effect-intensity="cinematic"] .cine-home-hero-overlay {
   filter: saturate(1.12);
 }
+
+/* V5 — Dégradé d'accent réellement continu sous le contenu.
+   Le fond précédent plaçait surtout les halos sur les côtés, ce qui laissait
+   une grande bande sombre au centre des pages. Cette couche colore aussi la
+   zone de lecture, du haut jusqu'en bas, sans rendre les cartes opaques. */
+.cine-app-shell {
+  background:
+    radial-gradient(ellipse 95% 38rem at 50% 0%, rgb(var(--cine-accent) / calc(var(--cine-bg-strong) * .72)), transparent 74%),
+    radial-gradient(ellipse 72% 46rem at 8% 30%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 76%),
+    radial-gradient(ellipse 72% 46rem at 92% 52%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 76%),
+    radial-gradient(ellipse 92% 52rem at 50% 76%, rgb(var(--cine-accent) / calc(var(--cine-bg-soft) * .92)), transparent 78%),
+    linear-gradient(90deg,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * 1.35)) 0%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .78)) 24%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .58)) 50%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .78)) 76%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * 1.35)) 100%),
+    linear-gradient(180deg,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .75)) 0%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .38)) 45%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .70)) 100%);
+  background-color: rgb(255 255 255 / 1);
+}
+
+.dark .cine-app-shell {
+  background:
+    radial-gradient(ellipse 95% 38rem at 50% 0%, rgb(var(--cine-accent) / calc(var(--cine-bg-strong) * .82)), transparent 74%),
+    radial-gradient(ellipse 72% 46rem at 8% 30%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 76%),
+    radial-gradient(ellipse 72% 46rem at 92% 52%, rgb(var(--cine-accent) / var(--cine-bg-medium)), transparent 76%),
+    radial-gradient(ellipse 92% 52rem at 50% 76%, rgb(var(--cine-accent) / var(--cine-bg-soft)), transparent 78%),
+    linear-gradient(90deg,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * 1.45)) 0%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .88)) 24%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .68)) 50%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .88)) 76%,
+      rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * 1.45)) 100%),
+    linear-gradient(180deg, rgb(2 6 23 / .86), rgb(3 7 18 / .92));
+  background-color: rgb(3 7 18);
+}
+
+/* La zone de recherche avait son propre bg-slate-950 opaque : il masquait
+   complètement l'ambiance globale derrière le titre et le formulaire. */
+.cine-search-hero {
+  background:
+    radial-gradient(circle at 50% 0%, rgb(var(--cine-accent) / calc(var(--cine-bg-strong) * .9)), transparent 52%),
+    linear-gradient(180deg, rgb(var(--cine-accent) / calc(var(--cine-bg-wash) * .8)), transparent 100%);
+}
