@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
+import CineModal from "../components/CineModal"
 import { useApp } from "../context/AppContext"
 import { useRandomMovie, type RandomMode } from "../hooks/useRandomMovie"
 
@@ -50,7 +51,7 @@ export default function RandomMovie() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <main className="page-enter mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <section className="relative overflow-hidden rounded-[2rem] border border-blue-400/20 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-7 text-white shadow-2xl sm:p-10">
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
         <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
@@ -107,7 +108,7 @@ export default function RandomMovie() {
         </div>
       </section>}
 
-      {trailerOpen && movie?.trailer && <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 backdrop-blur-sm" onClick={() => setTrailerOpen(false)}><div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl" onClick={e => e.stopPropagation()}><div className="flex items-center justify-between p-4"><div><p className="text-xs font-black uppercase tracking-widest text-blue-400">Bande-annonce</p><h3 className="font-black text-white">{movie.title}</h3></div><button type="button" onClick={() => setTrailerOpen(false)} className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl text-white hover:bg-white/20" aria-label="Fermer">×</button></div><div className="aspect-video bg-black"><iframe src={movie.trailer} title={`Bande-annonce de ${movie.title}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full" /></div></div></div>}
+      {movie && <CineModal open={trailerOpen && Boolean(movie.trailer)} onClose={() => setTrailerOpen(false)} title={`Bande-annonce — ${movie.title}`}><div className="aspect-video bg-black">{movie.trailer && <iframe src={movie.trailer} title={`Bande-annonce de ${movie.title}`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="h-full w-full" />}</div></CineModal>}
     </main>
   )
 }

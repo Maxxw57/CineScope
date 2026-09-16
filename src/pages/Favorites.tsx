@@ -55,8 +55,8 @@ export default function Favorites() {
   const hasFilters = query.trim() !== "" || genre !== "all" || sortBy !== "rating"
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <section className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-pink-600 via-rose-600 to-purple-700 p-7 text-white shadow-xl sm:p-10">
+    <main className="page-enter mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className="cine-premium-header mb-8 p-7 sm:p-10">
         <div className="relative z-10 max-w-3xl">
           <p className="text-sm font-black uppercase tracking-[0.22em] text-pink-100">
             Ma collection

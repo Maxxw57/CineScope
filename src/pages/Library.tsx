@@ -89,8 +89,8 @@ export default function Library() {
   ]
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <section className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-7 text-white shadow-xl sm:p-9">
+    <main className="page-enter mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className="cine-premium-header mb-8 p-7 sm:p-9">
         <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-24 left-1/3 h-52 w-52 rounded-full bg-pink-400/20 blur-3xl" />
         <div className="relative">

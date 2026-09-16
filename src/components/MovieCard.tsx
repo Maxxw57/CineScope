@@ -7,52 +7,25 @@ export default function MovieCard({ movie, localSource = false }: { movie: Movie
   const isFavorite = favorites.some(item => item.id === movie.id)
   const isInLibrary = library.some(item => item.id === movie.id)
   const detailUrl = localSource ? `/films/${movie.id}?source=local` : `/films/${movie.id}`
+  const synopsis = movie.synopsis && movie.synopsis !== "Aucune description disponible." ? movie.synopsis : "Découvrez ce film sur CineScope."
 
-  return (
-    <article className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900">
-      <div className="relative overflow-hidden bg-gray-100 dark:bg-gray-800">
-        <Link to={detailUrl} aria-label={`Voir ${movie.title}`}>
-          {movie.poster ? (
-            <img
-              src={movie.poster}
-              alt={`Affiche du film ${movie.title}`}
-              loading="lazy"
-              className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="grid aspect-[2/3] w-full place-items-center bg-gray-200 px-4 text-center font-semibold text-gray-500 dark:bg-gray-800">
-              Affiche indisponible
-            </div>
-          )}
-        </Link>
-        <span className="absolute right-2 top-2 rounded-full bg-black/75 px-2.5 py-1 text-xs font-bold text-yellow-300 backdrop-blur">★ {movie.rating}</span>
-      </div>
-
-      <div className="p-4">
-        <Link to={detailUrl} className="block">
-          <h3 className="truncate text-lg font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400">{movie.title}</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{movie.year} · {movie.genre}</p>
-        </Link>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)}
-            className={`rounded-lg px-2 py-2 text-sm font-semibold transition ${isFavorite ? "bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950 dark:text-pink-300" : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"}`}
-            aria-pressed={isFavorite}
-          >
-            {isFavorite ? "♥ Favori" : "♡ Favori"}
-          </button>
-          <button
-            type="button"
-            onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)}
-            className={`rounded-lg px-2 py-2 text-sm font-semibold transition ${isInLibrary ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"}`}
-            aria-pressed={isInLibrary}
-          >
-            {isInLibrary ? "✓ Ma liste" : "+ Ma liste"}
-          </button>
+  return <article className="cine-movie-card group">
+    <div className="relative aspect-[2/3] overflow-hidden bg-gray-200 dark:bg-gray-800">
+      <Link to={detailUrl} className="absolute inset-0" aria-label={`Voir ${movie.title}`}>
+        {movie.poster ? <img src={movie.poster} alt={`Affiche du film ${movie.title}`} loading="lazy" className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.07]" /> : <div className="grid h-full place-items-center px-4 text-center font-bold text-gray-500">Affiche indisponible</div>}
+      </Link>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent opacity-80 transition duration-300 group-hover:via-black/35 group-hover:opacity-100" />
+      <span className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/65 px-2.5 py-1 text-xs font-black text-yellow-300 backdrop-blur-xl">★ {movie.rating.toFixed?.(1) ?? movie.rating}</span>
+      <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+        <h3 className="line-clamp-2 text-lg font-black leading-tight drop-shadow">{movie.title}</h3>
+        <p className="mt-1 text-xs font-semibold text-white/70">{movie.year || "—"} · {movie.genre || "Genre inconnu"}</p>
+        <p className="mt-2 line-clamp-2 max-h-0 overflow-hidden text-xs leading-5 text-white/75 opacity-0 transition-all duration-300 group-hover:max-h-12 group-hover:opacity-100">{synopsis}</p>
+        <div className="mt-3 grid translate-y-3 grid-cols-[1fr_auto_auto] gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <Link to={detailUrl} className="rounded-xl bg-blue-600 px-3 py-2 text-center text-xs font-black text-white hover:bg-blue-500">▶ Voir</Link>
+          <button type="button" onClick={() => isFavorite ? removeFavorite(movie.id) : addFavorite(movie)} className={`cine-card-action ${isFavorite ? "text-pink-300" : ""}`} aria-label="Favori">{isFavorite ? "♥" : "♡"}</button>
+          <button type="button" onClick={() => isInLibrary ? removeFromLibrary(movie.id) : addToLibrary(movie)} className={`cine-card-action ${isInLibrary ? "text-emerald-300" : ""}`} aria-label="Bibliothèque">{isInLibrary ? "✓" : "+"}</button>
         </div>
       </div>
-    </article>
-  )
+    </div>
+  </article>
 }

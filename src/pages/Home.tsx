@@ -30,13 +30,13 @@ export default function Home() {
   const cineScopeSelection = [...localMovies].sort((a, b) => b.rating - a.rating).slice(0, 4)
 
   return (
-    <main>
+    <main className="page-enter">
       {featured ? (
         <section className="relative isolate overflow-hidden border-b border-gray-200 dark:border-gray-800">
           <div className="absolute inset-0 -z-20">
-            {featured.poster && <img src={featured.poster} alt="" className="h-full w-full scale-110 object-cover object-center opacity-25 blur-sm dark:opacity-20" />}
+            {(featured.backdrop || featured.poster) && <img src={featured.backdrop || featured.poster} alt="" className="h-full w-full scale-105 object-cover object-center opacity-35 dark:opacity-40" />}
           </div>
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white via-white/95 to-white/50 dark:from-gray-950 dark:via-gray-950/95 dark:to-gray-950/60" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white via-white/90 to-white/35 dark:from-gray-950 dark:via-gray-950/90 dark:to-gray-950/45" />
           <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1fr_260px] md:py-16 lg:py-20">
             <div className="max-w-3xl">
               <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">Populaire sur TMDB</span>

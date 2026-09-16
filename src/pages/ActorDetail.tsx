@@ -16,8 +16,10 @@ export default function ActorDetail() {
 
   if (!actor || error) return <main className="mx-auto max-w-4xl px-4 py-20 text-center"><p className="text-5xl">🎭</p><h1 className="mt-4 text-3xl font-black">Impossible de charger cet acteur.</h1><p className="mt-2 text-gray-500">La fiche demandée est indisponible pour le moment.</p><div className="mt-6 flex justify-center gap-3"><button onClick={retry} className="rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">Réessayer</button><Link to="/films" className="rounded-xl border border-gray-300 px-5 py-3 font-bold dark:border-gray-700">Voir les films</Link></div></main>
 
-  return <main className="pb-16">
-    <section className="border-b border-gray-200 bg-gradient-to-b from-blue-50 via-white to-white dark:border-gray-800 dark:from-blue-950/30 dark:via-gray-950 dark:to-gray-950">
+  const actorBackdrop = actor.movies.find(movie => movie.backdrop)?.backdrop
+
+  return <main className="page-enter pb-16">
+    <section className="relative isolate overflow-hidden border-b border-gray-200 bg-gradient-to-b from-blue-50 via-white to-white dark:border-gray-800 dark:from-blue-950/30 dark:via-gray-950 dark:to-gray-950">{actorBackdrop && <><img src={actorBackdrop} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-20 dark:opacity-25"/><div className="absolute inset-0 -z-10 bg-gradient-to-r from-white via-white/90 to-white/55 dark:from-gray-950 dark:via-gray-950/90 dark:to-gray-950/60"/></>}
       <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-6"><Link to="/films" className="text-sm font-bold text-gray-500 hover:text-blue-600">← Retour aux films</Link></div>
       <div className="mx-auto grid max-w-6xl gap-9 px-4 py-10 sm:px-6 md:grid-cols-[280px_1fr] md:py-14">
         {actor.profile ? <img src={actor.profile} alt={`Portrait de ${actor.name}`} className="aspect-[2/3] w-full max-w-[280px] rounded-3xl object-cover shadow-2xl"/> : <div className="grid aspect-[2/3] max-w-[280px] place-items-center rounded-3xl bg-gray-200 text-6xl dark:bg-gray-800">👤</div>}

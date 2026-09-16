@@ -13,10 +13,11 @@ export default function ForYou() {
     refresh,
     ignoreMovie,
   } = usePersonalizedRecommendations()
+  const heroBackdrop = sections.flatMap(section => section.movies).find(movie => movie.backdrop)?.backdrop
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 p-8 text-white shadow-xl sm:p-10">
+    <main className="page-enter mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 p-8 text-white shadow-2xl sm:p-10">{heroBackdrop && <><img src={heroBackdrop} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-35"/><div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-blue-950/80 to-indigo-900/45"/></>}
         <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Sélection personnalisée</p>
         <h1 className="mt-3 text-4xl font-black sm:text-5xl">Pour vous</h1>
         <p className="mt-4 max-w-3xl text-base text-blue-100 sm:text-lg">

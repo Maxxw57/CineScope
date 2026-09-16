@@ -225,7 +225,7 @@ export default function Profile() {
 
   if (isEditing) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <main className="page-enter mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <div className="mb-8">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Compte CineScope</p>
           <h1 className="mt-2 text-4xl font-black text-gray-900 dark:text-white sm:text-5xl">Modifier mon profil</h1>
@@ -281,7 +281,7 @@ export default function Profile() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <main className="page-enter mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <section className="overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-2xl shadow-gray-200/50 dark:border-gray-800 dark:bg-gray-900 dark:shadow-none">
         <div className="relative h-44 overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-600 to-violet-600 sm:h-56">
           {media.banner && <img src={media.banner} alt="Bannière du profil" className="absolute inset-0 h-full w-full object-cover" />}
@@ -344,6 +344,10 @@ export default function Profile() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.45fr_0.8fr]">
         <div className="space-y-6">
+          {favorites.length > 0 && <section className="cine-panel">
+            <p className="cine-eyebrow">Sélection personnelle</p><h2 className="mt-1 text-2xl font-black">Mes films favoris</h2>
+            <div className="mt-6 flex gap-4 overflow-x-auto pb-3">{[...favorites].sort((a,b) => b.rating-a.rating).slice(0,5).map((movie,index) => <Link key={movie.id} to={`/films/${movie.id}`} className="group relative w-32 shrink-0"><div className="aspect-[2/3] overflow-hidden rounded-2xl bg-gray-200 shadow-lg dark:bg-gray-800">{movie.poster && <img src={movie.poster} alt={movie.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/>}</div><span className="absolute -left-2 -top-2 grid h-8 w-8 place-items-center rounded-full bg-blue-600 text-xs font-black text-white shadow-lg">#{index+1}</span><p className="mt-2 truncate text-sm font-black">{movie.title}</p></Link>)}</div>
+          </section>}
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-7">
             <div className="flex items-center justify-between gap-4">
               <div>
