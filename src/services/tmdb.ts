@@ -384,6 +384,9 @@ export type DiscoverSeriesFilters = {
   genreId?: number
   year?: number
   minRating?: number
+  minVotes?: number
+  firstAirDateGte?: string
+  firstAirDateLte?: string
   sortBy?: "popularity.desc" | "vote_average.desc" | "first_air_date.desc" | "name.asc"
 }
 
@@ -455,7 +458,11 @@ export async function discoverSeries(filters: DiscoverSeriesFilters = {}, page =
   const params = new URLSearchParams({ language: "fr-FR", include_adult: "false", page: String(page), sort_by: filters.sortBy ?? "popularity.desc" })
   if (filters.genreId) params.set("with_genres", String(filters.genreId))
   if (filters.year) params.set("first_air_date_year", String(filters.year))
-  if (filters.minRating) { params.set("vote_average.gte", String(filters.minRating)); params.set("vote_count.gte", "50") }
+  if (filters.firstAirDateGte) params.set("first_air_date.gte", filters.firstAirDateGte)
+  if (filters.firstAirDateLte) params.set("first_air_date.lte", filters.firstAirDateLte)
+  if (filters.minRating) params.set("vote_average.gte", String(filters.minRating))
+  if (filters.minVotes) params.set("vote_count.gte", String(filters.minVotes))
+  else if (filters.minRating) params.set("vote_count.gte", "50")
   const [data, genres] = await Promise.all([request<TmdbSeriesPage>(`/discover/tv?${params}`), getSeriesGenreMap()])
   return { series: data.results.map(s => mapSeries(s, genres)), page: data.page, totalPages: Math.min(data.total_pages, 500), totalResults: data.total_results }
 }
