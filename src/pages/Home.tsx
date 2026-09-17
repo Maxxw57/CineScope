@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom"
 import MovieCard from "../components/MovieCard"
+import SeriesCard from "../components/SeriesCard"
 import { useApp } from "../context/AppContext"
 import { useTmdbHome } from "../hooks/useTmdbHome"
+import { useTmdbSeriesHome } from "../hooks/useTmdbSeriesHome"
 import { Movie } from "../types/Movie"
+import { Series } from "../types/Series"
 
 
 function MovieSection({ title, eyebrow, movies }: { title: string; eyebrow: string; movies: Movie[] }) {
@@ -23,9 +26,28 @@ function MovieSection({ title, eyebrow, movies }: { title: string; eyebrow: stri
   )
 }
 
+function SeriesSection({ title, eyebrow, series }: { title: string; eyebrow: string; series: Series[] }) {
+  if (!series.length) return null
+  return (
+    <section className="mb-14">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">{eyebrow}</p>
+          <h2 className="mt-1 text-2xl font-black sm:text-3xl">{title}</h2>
+        </div>
+        <Link to="/series" className="text-sm font-bold text-blue-600 hover:underline dark:text-blue-400">Voir tout →</Link>
+      </div>
+      <div className="cine-movie-grid grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+        {series.map(item => <SeriesCard key={item.id} series={item} />)}
+      </div>
+    </section>
+  )
+}
+
 export default function Home() {
   const { movies: localMovies } = useApp()
   const { popular, topRated, upcoming, loading, error, retry } = useTmdbHome()
+  const { popular: popularSeries, topRated: topRatedSeries, recent: recentSeries, loading: seriesLoading, error: seriesError, retry: retrySeries } = useTmdbSeriesHome()
   const featured = popular[0]
   const cineScopeSelection = [...localMovies].sort((a, b) => b.rating - a.rating).slice(0, 4)
 
@@ -80,6 +102,38 @@ export default function Home() {
             <MovieSection eyebrow="À découvrir bientôt" title="Prochainement" movies={upcoming} />
           </>
         )}
+
+        <section className="mb-14 border-t border-gray-200 pt-10 dark:border-gray-800">
+          <div className="mb-8">
+            <p className="text-sm font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">Côté séries</p>
+            <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-black sm:text-4xl">Découvrez aussi les séries</h2>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">Retrouvez les séries populaires, les mieux notées et les nouveautés de TMDB.</p>
+              </div>
+              <Link to="/series" className="cine-button-secondary">Explorer les séries →</Link>
+            </div>
+          </div>
+
+          {seriesLoading && (
+            <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-8 text-center font-semibold dark:border-gray-800 dark:bg-gray-900">Chargement des séries TMDB...</div>
+          )}
+
+          {!seriesLoading && seriesError && (
+            <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-7 text-center dark:border-red-900 dark:bg-red-950/30">
+              <p className="font-bold">{seriesError}</p>
+              <button type="button" onClick={retrySeries} className="mt-4 rounded-xl bg-blue-600 px-5 py-2.5 font-bold text-white hover:bg-blue-500">Réessayer</button>
+            </div>
+          )}
+
+          {!seriesLoading && !seriesError && (
+            <>
+              <SeriesSection eyebrow="Tendances TV" title="Séries populaires" series={popularSeries} />
+              <SeriesSection eyebrow="Les incontournables" title="Séries les mieux notées" series={topRatedSeries} />
+              <SeriesSection eyebrow="À découvrir" title="Séries récentes" series={recentSeries} />
+            </>
+          )}
+        </section>
 
         {cineScopeSelection.length > 0 && (
           <section className="mb-14 rounded-3xl border border-gray-200 bg-gray-50 p-5 sm:p-7 dark:border-gray-800 dark:bg-gray-900/50">
