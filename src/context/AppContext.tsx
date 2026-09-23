@@ -271,6 +271,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return
     }
     if (rating < 0 || rating > 5) return
+    if (Object.prototype.hasOwnProperty.call(ratings, movieKey)) {
+      showToast("Supprimez votre note actuelle avant d'en enregistrer une nouvelle.", "info")
+      return
+    }
     setRatings(current => ({ ...current, [movieKey]: rating }))
     showToast(`Note enregistrée : ${rating}/5.`)
   }

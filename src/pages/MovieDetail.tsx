@@ -205,7 +205,7 @@ export default function MovieDetail() {
     selectedRating ?? personalRating ?? 0
 
   const saveRating = () => {
-    if (!isLoggedIn) return
+    if (!isLoggedIn || personalRating !== null) return
 
     // Aucune étoile sélectionnée = 0/5
     rateMovie(
@@ -424,7 +424,7 @@ export default function MovieDetail() {
                         )
                       }
                       disabled={
-                        !isLoggedIn
+                        !isLoggedIn || personalRating !== null
                       }
                       aria-label={`Noter ${star} sur 5`}
                       className={`text-4xl transition hover:scale-110 disabled:opacity-40 ${
@@ -440,7 +440,7 @@ export default function MovieDetail() {
                 )}
               </div>
 
-              {isLoggedIn && (
+              {isLoggedIn && personalRating === null && (
                 <div className="mt-5">
                   <button
                     type="button"
