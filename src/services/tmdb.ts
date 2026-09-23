@@ -486,3 +486,46 @@ export async function getSeasonEpisodes(seriesId: number, seasonNumber: number):
   const data = await request<{ episodes?: { id: number; episode_number: number; name: string; overview?: string; air_date?: string; vote_average?: number; runtime?: number; still_path?: string | null }[] }>(`/tv/${seriesId}/season/${seasonNumber}?language=fr-FR`)
   return (data.episodes ?? []).map(e => ({ id: e.id, episodeNumber: e.episode_number, name: e.name, overview: e.overview || "Aucune description disponible.", airDate: e.air_date, rating: Number((e.vote_average ?? 0).toFixed(1)), runtime: e.runtime, still: e.still_path ? `${IMAGE_URL}${e.still_path}` : "" }))
 }
+
+export type WatchProvider = {
+  providerId: number
+  name: string
+  logo: string
+}
+
+export type WatchProviders = {
+  link?: string
+  streaming: WatchProvider[]
+  rent: WatchProvider[]
+  buy: WatchProvider[]
+}
+
+type TmdbWatchProvider = { provider_id: number; provider_name: string; logo_path?: string | null }
+type TmdbWatchProviderCountry = { link?: string; flatrate?: TmdbWatchProvider[]; rent?: TmdbWatchProvider[]; buy?: TmdbWatchProvider[] }
+
+function mapWatchProvider(provider: TmdbWatchProvider): WatchProvider {
+  return {
+    providerId: provider.provider_id,
+    name: provider.provider_name,
+    logo: provider.logo_path ? `https://image.tmdb.org/t/p/w92${provider.logo_path}` : "",
+  }
+}
+
+async function getWatchProviders(path: string, country = "FR"): Promise<WatchProviders> {
+  const data = await request<{ results?: Record<string, TmdbWatchProviderCountry> }>(path)
+  const result = data.results?.[country]
+  return {
+    link: result?.link,
+    streaming: (result?.flatrate ?? []).map(mapWatchProvider),
+    rent: (result?.rent ?? []).map(mapWatchProvider),
+    buy: (result?.buy ?? []).map(mapWatchProvider),
+  }
+}
+
+export function getMovieWatchProviders(id: number, country = "FR") {
+  return getWatchProviders(`/movie/${id}/watch/providers`, country)
+}
+
+export function getSeriesWatchProviders(id: number, country = "FR") {
+  return getWatchProviders(`/tv/${id}/watch/providers`, country)
+}

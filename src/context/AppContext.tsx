@@ -30,9 +30,13 @@ type AppContextType = {
   setAccentColor: (accent: AccentColor) => void
   isLoggedIn: boolean
   ratings: Record<string, number>
+  reviews: Record<string, string>
   rateMovie: (movieKey: string, rating: number) => void
   removeRating: (movieKey: string) => void
   getMovieRating: (movieKey: string) => number | null
+  saveReview: (movieKey: string, review: string) => void
+  removeReview: (movieKey: string) => void
+  getReview: (movieKey: string) => string
   history: HistoryEntry[]
   recordMovieView: (movie: Movie, source: "tmdb" | "local") => void
   clearHistory: () => void
@@ -68,6 +72,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState("light")
   const [accentColor, setAccentColorState] = useState<AccentColor>("blue")
   const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [reviews, setReviews] = useState<Record<string, string>>({})
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [preferences, setPreferences] = useState<CinePreferences>(defaultPreferences)
   const { user } = useAuth()
@@ -173,6 +178,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!user) return
     localStorage.setItem(`ratings:${user.email}`, JSON.stringify(ratings))
   }, [ratings, user])
+
+  useEffect(() => {
+    if (!user) {
+      setReviews({})
+      return
+    }
+
+    const storageKey = `reviews:${user.email}`
+    const savedReviews = localStorage.getItem(storageKey)
+    if (!savedReviews) {
+      setReviews({})
+      return
+    }
+
+    try {
+      setReviews(JSON.parse(savedReviews) as Record<string, string>)
+    } catch {
+      localStorage.removeItem(storageKey)
+      setReviews({})
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    localStorage.setItem(`reviews:${user.email}`, JSON.stringify(reviews))
+  }, [reviews, user])
 
   useEffect(() => {
     if (!user) {
@@ -285,10 +316,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       delete next[movieKey]
       return next
     })
-    showToast("Votre note a été supprimée.", "info")
+    setReviews(current => {
+      const next = { ...current }
+      delete next[movieKey]
+      return next
+    })
+    showToast("Votre note et votre critique ont été supprimées.", "info")
   }
 
   const getMovieRating = (movieKey: string) => ratings[movieKey] ?? null
+
+  const saveReview = (movieKey: string, review: string) => {
+    if (!isLoggedIn) {
+      showToast("Vous devez être connecté pour écrire une critique.", "error")
+      return
+    }
+    if (!Object.prototype.hasOwnProperty.call(ratings, movieKey)) {
+      showToast("Enregistrez d'abord votre note avant d'écrire une critique.", "info")
+      return
+    }
+    const cleanReview = review.trim()
+    if (!cleanReview) return
+    setReviews(current => ({ ...current, [movieKey]: cleanReview }))
+    showToast("Votre critique a été enregistrée.")
+  }
+
+  const removeReview = (movieKey: string) => {
+    setReviews(current => {
+      const next = { ...current }
+      delete next[movieKey]
+      return next
+    })
+    showToast("Votre critique a été supprimée.", "info")
+  }
+
+  const getReview = (movieKey: string) => reviews[movieKey] ?? ""
 
   const recordMovieView = useCallback((movie: Movie, source: "tmdb" | "local") => {
     if (!isLoggedIn) return
@@ -311,8 +373,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const clearRatings = useCallback(() => {
     setRatings({})
-    if (user) localStorage.removeItem(`ratings:${user.email}`)
-    showToast("Toutes vos notes ont été supprimées.", "info")
+    setReviews({})
+    if (user) {
+      localStorage.removeItem(`ratings:${user.email}`)
+      localStorage.removeItem(`reviews:${user.email}`)
+    }
+    showToast("Toutes vos notes et critiques ont été supprimées.", "info")
   }, [showToast, user])
 
   const clearHistory = useCallback(() => {
@@ -337,9 +403,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       removeFromLibrary,
       updateLibraryStatus,
       ratings,
+      reviews,
       rateMovie,
       removeRating,
       getMovieRating,
+      saveReview,
+      removeReview,
+      getReview,
       history,
       recordMovieView,
       clearHistory,

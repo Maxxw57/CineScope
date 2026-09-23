@@ -5,6 +5,7 @@ import MovieCard from "../components/MovieCard"
 import { useApp } from "../context/AppContext"
 import { useTmdbMovie } from "../hooks/useTmdbMovie"
 import { useTmdbSimilarMovies } from "../hooks/useTmdbSimilarMovies"
+import { getMovieWatchProviders, WatchProviders } from "../services/tmdb"
 
 function formatDuration(minutes?: number) {
   if (!minutes) return null
@@ -25,6 +26,9 @@ export default function MovieDetail() {
   // Note sélectionnée avant enregistrement.
   // null = aucune étoile sélectionnée.
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
+  const [reviewDraft, setReviewDraft] = useState("")
+  const [editingReview, setEditingReview] = useState(false)
+  const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null)
 
   const {
     movies,
@@ -38,6 +42,9 @@ export default function MovieDetail() {
     rateMovie,
     removeRating,
     getMovieRating,
+    saveReview,
+    removeReview,
+    getReview,
     recordMovieView,
     preferences,
   } = useApp()
@@ -79,6 +86,23 @@ export default function MovieDetail() {
     isLocal,
     recordMovieView,
   ])
+
+  useEffect(() => {
+    let cancelled = false
+    if (isLocal || movieId === null) {
+      setWatchProviders(null)
+      return
+    }
+    getMovieWatchProviders(movieId, "FR")
+      .then(data => { if (!cancelled) setWatchProviders(data) })
+      .catch(() => { if (!cancelled) setWatchProviders(null) })
+    return () => { cancelled = true }
+  }, [movieId, isLocal])
+
+  useEffect(() => {
+    setReviewDraft("")
+    setEditingReview(false)
+  }, [movieId, isLocal])
 
   if (loading) {
     return (
@@ -198,6 +222,8 @@ export default function MovieDetail() {
 
   const personalRating =
     getMovieRating(ratingKey)
+  const personalReview = getReview(ratingKey)
+
 
   // Si une nouvelle note est sélectionnée,
   // on l'affiche. Sinon on affiche la note enregistrée.
@@ -392,6 +418,38 @@ export default function MovieDetail() {
           </div>
         </section>
 
+        {!isLocal && watchProviders && (watchProviders.streaming.length > 0 || watchProviders.rent.length > 0 || watchProviders.buy.length > 0) && (
+          <section className="cine-panel">
+            <p className="cine-eyebrow">Disponibilité en France</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-black">Où regarder</h2>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Disponibilités fournies par TMDB pour la France.</p>
+              </div>
+              {watchProviders.link && <a href={watchProviders.link} target="_blank" rel="noreferrer" className="cine-button-secondary">Voir les disponibilités →</a>}
+            </div>
+            <div className="mt-6 grid gap-5 md:grid-cols-3">
+              {[
+                { label: "Streaming", items: watchProviders.streaming },
+                { label: "Location", items: watchProviders.rent },
+                { label: "Achat", items: watchProviders.buy },
+              ].filter(group => group.items.length > 0).map(group => (
+                <div key={group.label} className="cine-glass-card">
+                  <p className="text-sm font-black">{group.label}</p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {group.items.map(provider => (
+                      <div key={`${group.label}-${provider.providerId}`} className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white/70 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                        {provider.logo && <img src={provider.logo} alt="" className="h-8 w-8 rounded-lg object-cover" />}
+                        <span className="text-sm font-bold">{provider.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* NOTE PERSONNELLE */}
         <section className="cine-panel">
           <p className="cine-eyebrow">
@@ -463,6 +521,53 @@ export default function MovieDetail() {
               </button>
             )}
           </div>
+
+          {isLoggedIn && personalRating !== null && (
+            <div className="mt-8 border-t border-gray-200 pt-6 dark:border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="cine-eyebrow">Critique personnelle</p>
+                  <p className="mt-2 text-lg font-black text-yellow-400">
+                    {"★".repeat(personalRating)}{"☆".repeat(5 - personalRating)} <span className="text-gray-900 dark:text-white">{personalRating}/5</span>
+                  </p>
+                </div>
+                {personalReview && !editingReview && (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { setReviewDraft(personalReview); setEditingReview(true) }} className="cine-button-secondary">Modifier ma critique</button>
+                    <button type="button" onClick={() => { removeReview(ratingKey); setReviewDraft(""); setEditingReview(false) }} className="cine-button-secondary">Supprimer ma critique</button>
+                  </div>
+                )}
+              </div>
+
+              {personalReview && !editingReview ? (
+                <p className="mt-5 whitespace-pre-wrap rounded-2xl bg-gray-100/70 p-5 leading-7 text-gray-700 dark:bg-white/[.04] dark:text-gray-300">{personalReview}</p>
+              ) : (
+                <div className="mt-5">
+                  <textarea
+                    value={reviewDraft}
+                    onChange={event => setReviewDraft(event.target.value.slice(0, 600))}
+                    rows={4}
+                    placeholder="Ex. Très bonne réalisation, mais un peu long."
+                    className="w-full rounded-2xl border border-gray-200 bg-white/80 p-4 outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-white/5"
+                  />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-gray-500">{reviewDraft.length}/600 caractères</span>
+                    <div className="flex gap-2">
+                      {editingReview && <button type="button" onClick={() => { setReviewDraft(personalReview); setEditingReview(false) }} className="cine-button-secondary">Annuler</button>}
+                      <button
+                        type="button"
+                        disabled={!reviewDraft.trim()}
+                        onClick={() => { saveReview(ratingKey, reviewDraft); setEditingReview(false) }}
+                        className="cine-button-primary disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {personalReview ? "Enregistrer les modifications" : "Enregistrer ma critique"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {movie.cast &&
