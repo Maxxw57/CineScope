@@ -331,9 +331,18 @@ export async function getSimilarMovies(id: number, page = 1): Promise<MoviePage>
 }
 
 
+export type ActorSearchResult = {
+  id: number
+  name: string
+  profile: string
+  knownForDepartment?: string
+  popularity: number
+}
+
 type TmdbPerson = {
   id: number
   name: string
+  popularity?: number
   biography?: string
   birthday?: string | null
   deathday?: string | null
@@ -341,6 +350,27 @@ type TmdbPerson = {
   profile_path?: string | null
   known_for_department?: string
   movie_credits?: { cast?: TmdbMovie[] }
+}
+
+export async function searchActors(query: string, page = 1): Promise<{ actors: ActorSearchResult[]; page: number; totalPages: number; totalResults: number }> {
+  const data = await request<{ results: TmdbPerson[]; page: number; total_pages: number; total_results: number }>(
+    `/search/person?language=fr-FR&include_adult=false&query=${encodeURIComponent(query)}&page=${page}`
+  )
+
+  return {
+    actors: data.results
+      .filter(person => person.known_for_department === "Acting")
+      .map(person => ({
+        id: person.id,
+        name: person.name,
+        profile: posterUrl(person.profile_path),
+        knownForDepartment: person.known_for_department,
+        popularity: person.popularity ?? 0,
+      })),
+    page: data.page,
+    totalPages: Math.min(data.total_pages, 500),
+    totalResults: data.total_results,
+  }
 }
 
 export async function getActorDetails(id: number): Promise<Actor> {
