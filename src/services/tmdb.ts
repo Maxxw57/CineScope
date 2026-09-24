@@ -631,23 +631,34 @@ export async function getCalendarSeriesReleases(days = 120): Promise<CalendarSer
   const end = new Date(today)
   end.setDate(end.getDate() + days)
 
-  const params = new URLSearchParams({
+  // Les séries qui ne sont pas encore diffusées ont souvent 0 vote sur TMDB.
+  // Ne pas imposer vote_count.gte ici, sinon la majorité des vraies sorties
+  // à venir disparaissent du calendrier.
+  const makeParams = (page: number) => new URLSearchParams({
     language: "fr-FR",
     include_adult: "false",
     sort_by: "first_air_date.asc",
     "first_air_date.gte": isoDate(today),
     "first_air_date.lte": isoDate(end),
-    "vote_count.gte": "5",
-    page: "1",
+    page: String(page),
   })
 
-  const [data, genres] = await Promise.all([
-    request<TmdbSeriesPage>(`/discover/tv?${params}`),
+  // On lit plusieurs pages : la première page seule est trop limitée pour
+  // représenter correctement les séries prévues sur les prochains mois.
+  const [page1, page2, page3, genres] = await Promise.all([
+    request<TmdbSeriesPage>(`/discover/tv?${makeParams(1)}`),
+    request<TmdbSeriesPage>(`/discover/tv?${makeParams(2)}`),
+    request<TmdbSeriesPage>(`/discover/tv?${makeParams(3)}`),
     getSeriesGenreMap(),
   ])
 
-  return data.results
-    .filter(series => Boolean(series.first_air_date))
+  const unique = new Map<number, TmdbSeries>()
+  ;[...page1.results, ...page2.results, ...page3.results].forEach(series => {
+    if (series.first_air_date) unique.set(series.id, series)
+  })
+
+  return [...unique.values()]
+    .sort((a, b) => (a.first_air_date ?? "").localeCompare(b.first_air_date ?? ""))
     .map(series => {
       const mapped = mapSeries(series, genres)
       return {
