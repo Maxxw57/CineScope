@@ -150,7 +150,6 @@ export async function getPersonalizedRecommendations(
     "vote_average.gte": "6",
   })
 
-  // Le séparateur | signifie « l'un de ces genres » dans TMDB.
   if (genreIds.length > 0) {
     params.set("with_genres", genreIds.join("|"))
   }
@@ -198,9 +197,6 @@ export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<
 
   const excluded = new Set(excludedIds)
 
-  // En mode « Selon mes goûts », on privilégie une vraie combinaison des genres
-  // dominants de la bibliothèque (AND) au lieu d'accepter n'importe lequel (OR).
-  // Si la combinaison est trop restrictive, on élargit progressivement.
   const genreAttempts: string[] = []
   if (genreId) {
     genreAttempts.push(String(genreId))
@@ -213,8 +209,6 @@ export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<
   }
 
   for (const withGenres of genreAttempts) {
-    // Les premières pages sont plus fiables qu'une page 1..20 aléatoire, mais on
-    // varie quand même le tirage pour éviter de toujours proposer les mêmes films.
     const pages = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3)
 
     for (const page of pages) {
@@ -241,8 +235,6 @@ export async function getRandomMovie(options: RandomMovieOptions = {}): Promise<
         .filter(movie => !excluded.has(movie.id) && Boolean(movie.poster))
 
       if (candidates.length > 0) {
-        // Parmi les résultats compatibles, on favorise ceux qui recoupent le plus
-        // de genres de la bibliothèque, puis on choisit dans les meilleurs profils.
         const scored = candidates
           .map(movie => ({
             movie,
@@ -631,9 +623,6 @@ export async function getCalendarSeriesReleases(days = 120): Promise<CalendarSer
   const end = new Date(today)
   end.setDate(end.getDate() + days)
 
-  // Les séries qui ne sont pas encore diffusées ont souvent 0 vote sur TMDB.
-  // Ne pas imposer vote_count.gte ici, sinon la majorité des vraies sorties
-  // à venir disparaissent du calendrier.
   const makeParams = (page: number) => new URLSearchParams({
     language: "fr-FR",
     include_adult: "false",
@@ -642,9 +631,7 @@ export async function getCalendarSeriesReleases(days = 120): Promise<CalendarSer
     "first_air_date.lte": isoDate(end),
     page: String(page),
   })
-
-  // On lit plusieurs pages : la première page seule est trop limitée pour
-  // représenter correctement les séries prévues sur les prochains mois.
+  
   const [page1, page2, page3, genres] = await Promise.all([
     request<TmdbSeriesPage>(`/discover/tv?${makeParams(1)}`),
     request<TmdbSeriesPage>(`/discover/tv?${makeParams(2)}`),
