@@ -10,9 +10,23 @@ export default function SeriesDetail() {
   const [series, setSeries] = useState<Series | null>(null); const [similar, setSimilar] = useState<Series[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(false)
   const [season, setSeason] = useState<number | null>(null); const [episodes, setEpisodes] = useState<SeriesEpisode[]>([]); const [episodesLoading, setEpisodesLoading] = useState(false); const [trailerOpen, setTrailerOpen] = useState(false)
   const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null)
+  const [followed, setFollowed] = useState(false)
 
   useEffect(() => { let cancelled = false; setLoading(true); Promise.all([getSeriesDetails(seriesId), getSimilarSeries(seriesId)]).then(([detail, rec]) => { if (!cancelled) { setSeries(detail); setSimilar(rec.series.slice(0, 4)) } }).catch(() => !cancelled && setError(true)).finally(() => !cancelled && setLoading(false)); return () => { cancelled = true } }, [seriesId])
   useEffect(() => { let cancelled = false; getSeriesWatchProviders(seriesId, "FR").then(data => { if (!cancelled) setWatchProviders(data) }).catch(() => { if (!cancelled) setWatchProviders(null) }); return () => { cancelled = true } }, [seriesId])
+  useEffect(() => {
+    try {
+      const ids = JSON.parse(localStorage.getItem("followedSeries") ?? "[]") as number[]
+      setFollowed(Array.isArray(ids) && ids.includes(seriesId))
+    } catch { setFollowed(false) }
+  }, [seriesId])
+  const toggleFollow = () => {
+    let ids: number[] = []
+    try { const saved = JSON.parse(localStorage.getItem("followedSeries") ?? "[]"); if (Array.isArray(saved)) ids = saved.filter(id => typeof id === "number") } catch { ids = [] }
+    const next = ids.includes(seriesId) ? ids.filter(id => id !== seriesId) : [...ids, seriesId]
+    localStorage.setItem("followedSeries", JSON.stringify(next))
+    setFollowed(next.includes(seriesId))
+  }
   const openSeason = async (n: number) => { setSeason(n); setEpisodesLoading(true); try { setEpisodes(await getSeasonEpisodes(seriesId, n)) } finally { setEpisodesLoading(false) } }
 
   if (loading) return <main className="mx-auto max-w-7xl px-4 py-20 text-center font-bold">Chargement de la série...</main>
@@ -24,7 +38,7 @@ export default function SeriesDetail() {
       <div className="mx-auto max-w-7xl px-4 pt-7 sm:px-6"><Link to="/series" className="inline-flex rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm font-bold">← Retour aux séries</Link></div>
       <div className="mx-auto grid max-w-7xl items-end gap-10 px-4 pb-14 pt-12 sm:px-6 md:grid-cols-[300px_1fr] md:pt-20">
         {series.poster ? <img src={series.poster} alt={`Affiche de ${series.title}`} className="mx-auto aspect-[2/3] w-full max-w-[300px] rounded-[2rem] object-cover shadow-2xl ring-1 ring-white/15"/> : <div/>}
-        <div><div className="flex flex-wrap gap-2">{series.genres?.map(g => <span key={g} className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">{g}</span>)}</div><h1 className="mt-5 text-4xl font-black sm:text-6xl">{series.title}</h1><div className="mt-5 flex flex-wrap gap-3 text-sm font-bold text-white/75"><span>{series.year || "—"}</span><span>•</span><span className="text-yellow-300">★ {series.rating}/10</span>{series.seasonsCount !== undefined && <><span>•</span><span>{series.seasonsCount} saison{series.seasonsCount > 1 ? "s" : ""}</span></>}{series.episodesCount !== undefined && <><span>•</span><span>{series.episodesCount} épisodes</span></>}</div><p className="mt-6 max-w-3xl text-lg leading-8 text-white/75">{series.synopsis}</p>{series.trailer && <button onClick={() => setTrailerOpen(true)} className="cine-hero-button mt-7 bg-white text-slate-950 ring-white/30">▶ Bande-annonce</button>}</div>
+        <div><div className="flex flex-wrap gap-2">{series.genres?.map(g => <span key={g} className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold">{g}</span>)}</div><h1 className="mt-5 text-4xl font-black sm:text-6xl">{series.title}</h1><div className="mt-5 flex flex-wrap gap-3 text-sm font-bold text-white/75"><span>{series.year || "—"}</span><span>•</span><span className="text-yellow-300">★ {series.rating}/10</span>{series.seasonsCount !== undefined && <><span>•</span><span>{series.seasonsCount} saison{series.seasonsCount > 1 ? "s" : ""}</span></>}{series.episodesCount !== undefined && <><span>•</span><span>{series.episodesCount} épisodes</span></>}</div><p className="mt-6 max-w-3xl text-lg leading-8 text-white/75">{series.synopsis}</p><div className="mt-7 flex flex-wrap gap-3"><button onClick={toggleFollow} className={followed ? "cine-hero-button bg-blue-600 text-white ring-blue-400/20" : "cine-hero-button bg-white/10 text-white ring-white/15"}>{followed ? "✓ Série suivie" : "+ Suivre la série"}</button>{series.trailer && <button onClick={() => setTrailerOpen(true)} className="cine-hero-button bg-white text-slate-950 ring-white/30">▶ Bande-annonce</button>}</div></div>
       </div>
     </section>
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-14 sm:px-6">

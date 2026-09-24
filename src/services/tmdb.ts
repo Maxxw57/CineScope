@@ -559,3 +559,85 @@ export function getMovieWatchProviders(id: number, country = "FR") {
 export function getSeriesWatchProviders(id: number, country = "FR") {
   return getWatchProviders(`/tv/${id}/watch/providers`, country)
 }
+
+// ─────────────────────────────────────────────────────────────
+// Calendrier cinéma / séries suivies
+// ─────────────────────────────────────────────────────────────
+export type CalendarMovieRelease = {
+  id: number
+  title: string
+  date: string
+  poster: string
+  rating: number
+}
+
+export type CalendarEpisode = {
+  seriesId: number
+  seriesTitle: string
+  seriesPoster: string
+  seasonNumber: number
+  episodeNumber: number
+  episodeName: string
+  date: string
+}
+
+function isoDate(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+export async function getCalendarMovieReleases(days = 120): Promise<CalendarMovieRelease[]> {
+  const today = new Date()
+  const end = new Date(today)
+  end.setDate(end.getDate() + days)
+
+  const params = new URLSearchParams({
+    language: "fr-FR",
+    include_adult: "false",
+    region: "FR",
+    sort_by: "primary_release_date.asc",
+    "primary_release_date.gte": isoDate(today),
+    "primary_release_date.lte": isoDate(end),
+    "release_date.gte": isoDate(today),
+    "release_date.lte": isoDate(end),
+    with_release_type: "2|3",
+    page: "1",
+  })
+
+  const data = await request<TmdbPage>(`/discover/movie?${params}`)
+  return data.results
+    .filter(movie => Boolean(movie.release_date))
+    .map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      date: movie.release_date!,
+      poster: posterUrl(movie.poster_path),
+      rating: Number((movie.vote_average ?? 0).toFixed(1)),
+    }))
+}
+
+export async function getNextSeriesEpisode(seriesId: number): Promise<CalendarEpisode | null> {
+  const item = await request<TmdbSeries & {
+    next_episode_to_air?: {
+      name: string
+      air_date?: string | null
+      episode_number: number
+      season_number: number
+    } | null
+  }>(`/tv/${seriesId}?language=fr-FR`)
+
+  const next = item.next_episode_to_air
+  if (!next?.air_date) return null
+
+  return {
+    seriesId: item.id,
+    seriesTitle: item.name,
+    seriesPoster: posterUrl(item.poster_path),
+    seasonNumber: next.season_number,
+    episodeNumber: next.episode_number,
+    episodeName: next.name,
+    date: next.air_date,
+  }
+}

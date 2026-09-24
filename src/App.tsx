@@ -17,6 +17,7 @@ import ForYou from "./pages/ForYou"
 import RandomMovie from "./pages/RandomMovie"
 import SeriesPage from "./pages/Series"
 import SeriesDetail from "./pages/SeriesDetail"
+import Calendar from "./pages/Calendar"
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/films/:id" element={<MovieDetail />} />
         <Route path="/series" element={<SeriesPage />} />
         <Route path="/series/:id" element={<SeriesDetail />} />
+        <Route path="/calendrier" element={<Calendar />} />
         <Route path="/acteurs/:id" element={<ActorDetail />} />
         <Route path="/pour-vous" element={<ProtectedRoute><ForYou /></ProtectedRoute>} />
         <Route path="/film-aleatoire" element={<RandomMovie />} />
