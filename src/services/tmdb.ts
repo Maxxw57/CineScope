@@ -581,6 +581,14 @@ export type CalendarEpisode = {
   date: string
 }
 
+export type CalendarSeriesRelease = {
+  id: number
+  title: string
+  date: string
+  poster: string
+  rating: number
+}
+
 function isoDate(date: Date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -616,6 +624,40 @@ export async function getCalendarMovieReleases(days = 120): Promise<CalendarMovi
       poster: posterUrl(movie.poster_path),
       rating: Number((movie.vote_average ?? 0).toFixed(1)),
     }))
+}
+
+export async function getCalendarSeriesReleases(days = 120): Promise<CalendarSeriesRelease[]> {
+  const today = new Date()
+  const end = new Date(today)
+  end.setDate(end.getDate() + days)
+
+  const params = new URLSearchParams({
+    language: "fr-FR",
+    include_adult: "false",
+    sort_by: "first_air_date.asc",
+    "first_air_date.gte": isoDate(today),
+    "first_air_date.lte": isoDate(end),
+    "vote_count.gte": "5",
+    page: "1",
+  })
+
+  const [data, genres] = await Promise.all([
+    request<TmdbSeriesPage>(`/discover/tv?${params}`),
+    getSeriesGenreMap(),
+  ])
+
+  return data.results
+    .filter(series => Boolean(series.first_air_date))
+    .map(series => {
+      const mapped = mapSeries(series, genres)
+      return {
+        id: mapped.id,
+        title: mapped.title,
+        date: series.first_air_date!,
+        poster: mapped.poster,
+        rating: mapped.rating,
+      }
+    })
 }
 
 export async function getNextSeriesEpisode(seriesId: number): Promise<CalendarEpisode | null> {
