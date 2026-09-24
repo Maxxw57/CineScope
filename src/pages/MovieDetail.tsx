@@ -517,7 +517,7 @@ export default function MovieDetail() {
                 onClick={deleteRating}
                 className="cine-button-secondary"
               >
-                Supprimer ma note
+                Supprimer mon note
               </button>
             )}
           </div>
