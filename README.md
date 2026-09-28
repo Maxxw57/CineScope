@@ -160,6 +160,6 @@ npm run dev
 
 L'application pourra alors effectuer ses requêtes vers l'API TMDB.
 
- Auteur
- 
-    Maxime HEINZ
+## 👥 Auteurs
+
+- Maxime HEINZ
