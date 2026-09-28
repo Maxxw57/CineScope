@@ -16,13 +16,8 @@ export type Movie = {
   poster: string
   backdrop?: string
   synopsis: string
-
-  // Casting simple
   cast?: string[]
-
-  // Casting détaillé TMDB pour les pages acteurs
   castDetails?: MovieCastMember[]
-
   trailer?: string
   voteCount?: number
   originalLanguage?: string
