@@ -35,7 +35,7 @@ export default function Settings() {
     const data: Record<string, unknown> = {}
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (!key || key === "account" || key === "user") continue
+      if (!key || key === "account" || key === "user" || key === "loginAttempts") continue
       if (["favorites", "library", "profile", "theme", "accentColor", "cinePreferences", "recommendations:ignored"].includes(key) || key.startsWith("ratings:") || key.startsWith("history:") || key.startsWith("profile-media:")) {
         const value = localStorage.getItem(key)
         try { data[key] = value ? JSON.parse(value) : null } catch { data[key] = value }

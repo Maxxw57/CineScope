@@ -58,6 +58,7 @@ async function getGenreMap() {
   return genreCache
 }
 
+
 function posterUrl(path?: string | null) {
   return path ? `${IMAGE_URL}${path}` : ""
 }

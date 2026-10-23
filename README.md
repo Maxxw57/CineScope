@@ -160,6 +160,23 @@ npm run dev
 
 L'application pourra alors effectuer ses requêtes vers l'API TMDB.
 
+## Sécurité et performances
+
+### Comptes utilisateurs
+- **Mots de passe hachés** : le mot de passe n'est jamais enregistré. Seul un hash **PBKDF2-SHA256** (210 000 itérations, sel aléatoire de 16 octets) est conservé, via l'API Web Crypto du navigateur (`src/utils/password.ts`). La vérification compare les hash en temps constant.
+- **Migration automatique** : un compte créé avec l'ancienne version (mot de passe en clair) est converti en hash dès la première connexion réussie.
+- **Protection contre les essais en série** : après 5 échecs de connexion, le formulaire est bloqué pendant 60 secondes.
+- **Messages neutres** : le message d'erreur est le même, que l'adresse existe ou non, pour ne pas révéler les comptes inscrits.
+- **Règles de mot de passe** : au moins 8 caractères, une lettre et un chiffre, sans le pseudo ni l'e-mail. Un indicateur de robustesse s'affiche à l'inscription.
+- **Redirection sûre** : après connexion, l'utilisateur revient sur la page qu'il voulait ouvrir. Seuls les chemins internes sont acceptés, ce qui évite les redirections vers un autre site.
+
+> Les comptes restent stockés dans le navigateur (`localStorage`) : c'est adapté à un projet de démonstration, pas à une application en production, qui demanderait un serveur d'authentification. De même, le jeton TMDB (`VITE_TMDB_TOKEN`) est inclus dans le code envoyé au navigateur : il faut utiliser un jeton en lecture seule et ne jamais publier le fichier `.env`.
+
+### Performances
+- **Chargement à la demande** : chaque page est chargée seulement quand on l'ouvre (`React.lazy`). Le fichier JavaScript principal passe de 360 Ko à 232 Ko (−36 %).
+- **Titre d'onglet par page** et **retour en haut de page** à chaque navigation (`src/components/RouteEffects.tsx`).
+- `npm run build` vérifie maintenant les types TypeScript avant de construire le projet (`npm run typecheck` pour la vérification seule).
+
 ## 👥 Auteurs
 
 - Maxime HEINZ
