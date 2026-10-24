@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "title": "Inception",
+    "year": 2010,
+    "rating": 8.8,
+    "duration": 148,
+    "genre": "Science-fiction",
+    "poster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpphwA1EynvH_cC7FeIDckQfKse7tYp1pFfhTnTWkR9w&s=10",
+    "synopsis": "Un voleur capable d'extraire des secrets dans les rêves doit accomplir l'impossible : implanter une idée dans l'esprit d'un individu.",
+    "cast": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"],
+    "trailer": "https://www.youtube.com/embed/YoHD9XEInc0"
+  },
+  {
+    "id": 2,
+    "title": "Interstellar",
+    "year": 2014,
+    "rating": 8.6,
+    "duration": 169,
+    "genre": "Science-fiction",
+    "poster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcQtsMgtD-c2K3Mcca14iMVQN0EcIlGDam96luUmPncg&s=10",
+    "synopsis": "Un groupe d'explorateurs traverse un trou de ver pour trouver une nouvelle planète habitable et sauver l'humanité.",
+    "cast": ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"],
+    "trailer": "https://www.youtube.com/embed/zSWdZVtXT7E"
+  },
+  {
+    "id": 3,
+    "title": "The Dark Knight",
+    "year": 2008,
+    "rating": 9.0,
+    "duration": 152,
+    "genre": "Action",
+    "poster": "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    "synopsis": "Batman affronte le Joker, un criminel imprévisible qui plonge Gotham dans le chaos.",
+    "cast": ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
+    "trailer": "https://www.youtube.com/embed/EXeTwQWrcwY"
+  },
+  {
+    "id": 4,
+    "title": "Avatar",
+    "year": 2009,
+    "rating": 7.8,
+    "duration": 162,
+    "genre": "Science-fiction",
+    "poster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfw__48ECVQfRFi4HrUpcizA_8o9YFIiqn9JcBd4pvYQ&s=10",
+    "synopsis": "Un ancien marine paralysé rejoint le programme Avatar et découvre la planète Pandora.",
+    "cast": ["Sam Worthington", "Zoe Saldana", "Sigourney Weaver"],
+    "trailer": "https://www.youtube.com/embed/5PSNL1qE6VY"
+  },
+  {
+    "id": 5,
+    "title": "Gladiator",
+    "year": 2000,
+    "rating": 8.5,
+    "duration": 155,
+    "genre": "Action",
+    "poster": "https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg",
+    "synopsis": "Un général romain trahi devient gladiateur pour se venger de l'empereur corrompu.",
+    "cast": ["Russell Crowe", "Joaquin Phoenix", "Connie Nielsen"],
+    "trailer": "https://www.youtube.com/embed/P5ieIbInFpg"
+  },
+  {
+    "id": 6,
+    "title": "Shutter Island",
+    "year": 2010,
+    "rating": 8.2,
+    "duration": 138,
+    "genre": "Thriller",
+    "poster": "https://image.tmdb.org/t/p/w500/kve20tXwUZpu4GUX8l6X7Z4jmL6.jpg",
+    "synopsis": "Deux agents enquêtent sur la disparition d'une patiente dans un hôpital psychiatrique isolé.",
+    "cast": ["Leonardo DiCaprio", "Mark Ruffalo", "Ben Kingsley"],
+    "trailer": "https://www.youtube.com/embed/5iaYLCiq5RM"
+  },
+  {
+    "id": 7,
+    "title": "Avengers: Endgame",
+    "year": 2019,
+    "rating": 8.4,
+    "duration": 186,
+    "genre": "Action",
+    "poster": "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+    "synopsis": "Les Avengers tentent de réparer les dégâts causés par Thanos et sauver l'univers.",
+    "cast": ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"],
+    "trailer": "https://www.youtube.com/embed/TcMBFSGVi1c"
+  },
+  {
+    "id": 8,
+    "title": "Joker",
+    "year": 2019,
+    "rating": 8.4,
+    "duration": 122,
+    "genre": "Drame",
+    "poster": "https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
+    "synopsis": "Arthur Fleck, un comédien raté, sombre dans la folie et devient le Joker.",
+    "cast": ["Joaquin Phoenix", "Robert De Niro", "Zazie Beetz"],
+    "trailer": "https://www.youtube.com/embed/zAGVQLHvwOY"
+  },
+  {
+    "id": 9,
+    "title": "Solo Leveling",
+    "year": 2016,
+    "rating": 8.2,
+    "duration": 24,
+    "genre": "Animé",
+    "poster": "https://cdng.europosters.eu/pod_public/1300/268992.jpg",
+    "synopsis": "Sung Jinwoo est un chasseur de monstres de rang E (le plus faible de tous) dans un monde où des portails mènent à des donjons remplis de créatures",
+    "cast": ["Alek Le", "Taito Ban", "Reina Ueda", "Genta Nakamura", "Haruna Mikawa", "Makoto Furukawa", "Banjo Ginga", "Jun'ichi Suwabe"],
+    "trailer": "https://www.youtube.com/watch?v=YvGSK8mIlt8"
+  }
+]
