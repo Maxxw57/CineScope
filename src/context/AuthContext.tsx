@@ -61,15 +61,49 @@ function getSavedUser(): User | null {
   }
 }
 
-function getSavedAccount(): Account | null {
-  const saved = localStorage.getItem("account")
-  if (!saved) return null
+const ACCOUNTS_KEY = "accounts"
+const LEGACY_ACCOUNT_KEY = "account"
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+function isAccount(value: unknown): value is Account {
+  return !!value && typeof value === "object" && typeof (value as Account).email === "string" && typeof (value as Account).username === "string"
+}
+
+/** Tous les comptes enregistrés sur cet appareil (reprend l'ancien format à compte unique). */
+function getAccounts(): Account[] {
+  let accounts: Account[] = []
   try {
-    const parsed = JSON.parse(saved) as Account
-    return parsed?.email ? parsed : null
-  } catch {
-    return null
+    const parsed = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "[]")
+    if (Array.isArray(parsed)) accounts = parsed.filter(isAccount)
+  } catch { /* liste corrompue : ignorée */ }
+
+  const legacy = localStorage.getItem(LEGACY_ACCOUNT_KEY)
+  if (legacy) {
+    try {
+      const parsed = JSON.parse(legacy)
+      if (isAccount(parsed) && !accounts.some(a => normalizeEmail(a.email) === normalizeEmail(parsed.email))) {
+        accounts.push(parsed)
+      }
+    } catch { /* ancien compte corrompu : ignoré */ }
+    saveAccounts(accounts)
+    localStorage.removeItem(LEGACY_ACCOUNT_KEY)
   }
+  return accounts
+}
+
+function saveAccounts(accounts: Account[]) {
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts))
+}
+
+function findAccount(email: string): Account | undefined {
+  const normalized = normalizeEmail(email)
+  return getAccounts().find(account => normalizeEmail(account.email) === normalized)
+}
+
+function upsertAccount(account: Account) {
+  const normalized = normalizeEmail(account.email)
+  saveAccounts([...getAccounts().filter(a => normalizeEmail(a.email) !== normalized), account])
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -77,15 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getSavedUser())
 
   const register = async (email: string, username: string, password: string): Promise<AuthResult> => {
-    const normalizedEmail = email.trim().toLowerCase()
-    const existing = getSavedAccount()
-    if (existing && existing.email.trim().toLowerCase() === normalizedEmail) {
+    const normalizedEmail = normalizeEmail(email)
+    if (findAccount(normalizedEmail)) {
       return { success: false, message: "Un compte existe déjà avec cette adresse mail." }
     }
     try {
       const passwordHash = await hashPassword(password)
       const account: Account = { email: normalizedEmail, username: username.trim(), passwordHash }
-      localStorage.setItem("account", JSON.stringify(account))
+      upsertAccount(account)
       return { success: true }
     } catch (error) {
       return { success: false, message: error instanceof Error ? error.message : "Impossible de créer le compte." }
@@ -93,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
-    const normalizedEmail = email.trim().toLowerCase()
+    const normalizedEmail = normalizeEmail(email)
 
     if (!normalizedEmail || !password) {
       return { success: false, message: "Veuillez renseigner votre adresse mail et votre mot de passe." }
@@ -106,10 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, message: `Trop de tentatives. Réessayez dans ${seconds} s.` }
     }
 
-    const account = getSavedAccount()
+    const account = findAccount(normalizedEmail)
     let valid = false
 
-    if (account && account.email.trim().toLowerCase() === normalizedEmail) {
+    if (account) {
       try {
         if (account.passwordHash) {
           valid = await verifyPassword(password, account.passwordHash)
@@ -118,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           valid = account.password === password
           if (valid) {
             const migrated: Account = { email: account.email, username: account.username, passwordHash: await hashPassword(password) }
-            localStorage.setItem("account", JSON.stringify(migrated))
+            upsertAccount(migrated)
           }
         }
       } catch (error) {

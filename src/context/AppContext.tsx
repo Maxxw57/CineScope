@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useState } from "react"
+import { readStored, useStoredState } from "../hooks/useStoredState"
 import { Movie } from "../types/Movie"
 import { useAuth } from "./AuthContext"
 import { useToast } from "./ToastContext"
@@ -8,11 +9,6 @@ export type LibraryStatus = "watchlist" | "watching" | "watched"
 export type LibraryMovie = Movie & { status: LibraryStatus }
 export type HistoryEntry = { movie: Movie; source: "tmdb" | "local"; viewedAt: number }
 export type AccentColor = "blue" | "violet" | "red" | "emerald" | "amber"
-
-type FavoriteAction =
-  | { type: "LOAD"; payload: Movie[] }
-  | { type: "ADD"; payload: Movie }
-  | { type: "REMOVE"; payload: number }
 
 type AppContextType = {
   favorites: Movie[]
@@ -50,68 +46,51 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | null>(null)
 
-function favoritesReducer(state: Movie[], action: FavoriteAction): Movie[] {
-  switch (action.type) {
-    case "LOAD":
-      return action.payload
-    case "ADD":
-      return state.some(movie => movie.id === action.payload.id)
-        ? state
-        : [...state, action.payload]
-    case "REMOVE":
-      return state.filter(movie => movie.id !== action.payload)
-    default:
-      return state
+const ACCENTS: AccentColor[] = ["blue", "violet", "red", "emerald", "amber"]
+
+const reviveArray = <T,>(value: unknown): T[] | undefined => (Array.isArray(value) ? (value as T[]) : undefined)
+const reviveRecord = <T,>(value: unknown): Record<string, T> | undefined =>
+  value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, T>) : undefined
+const reviveLibrary = (value: unknown): LibraryMovie[] | undefined =>
+  reviveArray<Movie & { status?: LibraryStatus }>(value)?.map(movie => ({ ...movie, status: movie.status ?? "watchlist" }))
+
+function loadPreferences(): CinePreferences {
+  const parsed = readStored<Partial<CinePreferences>>("cinePreferences")
+  if (!parsed || typeof parsed !== "object") return defaultPreferences
+  return {
+    ...defaultPreferences,
+    ...parsed,
+    recommendations: { ...defaultPreferences.recommendations, ...parsed.recommendations },
+    notifications: { ...defaultPreferences.notifications, ...parsed.notifications },
+    playback: { ...defaultPreferences.playback, ...parsed.playback },
+    library: { ...defaultPreferences.library, ...parsed.library },
   }
 }
 
+function loadAccent(): AccentColor {
+  const saved = localStorage.getItem("accentColor") as AccentColor | null
+  return saved && ACCENTS.includes(saved) ? saved : "blue"
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, dispatchFavorites] = useReducer(favoritesReducer, [])
-  const [library, setLibrary] = useState<LibraryMovie[]>([])
-  const [movies, setMovies] = useState<Movie[]>([])
-  const [theme, setTheme] = useState("light")
-  const [accentColor, setAccentColorState] = useState<AccentColor>("blue")
-  const [ratings, setRatings] = useState<Record<string, number>>({})
-  const [reviews, setReviews] = useState<Record<string, string>>({})
-  const [history, setHistory] = useState<HistoryEntry[]>([])
-  const [preferences, setPreferences] = useState<CinePreferences>(defaultPreferences)
   const { user } = useAuth()
   const { showToast } = useToast()
   const isLoggedIn = !!user
+  // Données propres à chaque compte : `null` quand personne n'est connecté.
+  const userKey = (name: string) => (user ? `${name}:${user.email}` : null)
+
+  const [favorites, setFavorites] = useStoredState<Movie[]>(userKey("favorites"), [], { revive: reviveArray, legacyKey: "favorites" })
+  const [library, setLibrary] = useStoredState<LibraryMovie[]>(userKey("library"), [], { revive: reviveLibrary, legacyKey: "library" })
+  const [ratings, setRatings] = useStoredState<Record<string, number>>(userKey("ratings"), {}, { revive: reviveRecord })
+  const [reviews, setReviews] = useStoredState<Record<string, string>>(userKey("reviews"), {}, { revive: reviveRecord })
+  const [history, setHistory] = useStoredState<HistoryEntry[]>(userKey("history"), [], { revive: reviveArray })
+
+  const [movies, setMovies] = useState<Movie[]>([])
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") ?? "light")
+  const [accentColor, setAccentColorState] = useState<AccentColor>(loadAccent)
+  const [preferences, setPreferences] = useState<CinePreferences>(loadPreferences)
 
   useEffect(() => {
-    const fav = localStorage.getItem("favorites")
-    const lib = localStorage.getItem("library")
-    const savedTheme = localStorage.getItem("theme")
-    const savedAccent = localStorage.getItem("accentColor") as AccentColor | null
-    const savedPreferences = localStorage.getItem("cinePreferences")
-
-    if (fav) {
-      try {
-        dispatchFavorites({ type: "LOAD", payload: JSON.parse(fav) })
-      } catch {
-        localStorage.removeItem("favorites")
-      }
-    }
-
-    if (lib) {
-      try {
-        const savedLibrary = JSON.parse(lib) as Array<Movie & { status?: LibraryStatus }>
-        setLibrary(savedLibrary.map(movie => ({ ...movie, status: movie.status ?? "watchlist" })))
-      } catch {
-        localStorage.removeItem("library")
-      }
-    }
-
-    if (savedTheme) setTheme(savedTheme)
-    if (savedAccent && ["blue", "violet", "red", "emerald", "amber"].includes(savedAccent)) setAccentColorState(savedAccent)
-    if (savedPreferences) {
-      try {
-        const parsed = JSON.parse(savedPreferences) as Partial<CinePreferences>
-        setPreferences({ ...defaultPreferences, ...parsed, recommendations: { ...defaultPreferences.recommendations, ...parsed.recommendations }, notifications: { ...defaultPreferences.notifications, ...parsed.notifications }, playback: { ...defaultPreferences.playback, ...parsed.playback }, library: { ...defaultPreferences.library, ...parsed.library } })
-      } catch { localStorage.removeItem("cinePreferences") }
-    }
-
     fetch("/movies.json")
       .then(res => {
         if (!res.ok) throw new Error("Impossible de charger les films")
@@ -120,14 +99,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(data => setMovies(data))
       .catch(error => console.error("Erreur de chargement des films :", error))
   }, [])
-
-  useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify(favorites))
-  }, [favorites])
-
-  useEffect(() => {
-    localStorage.setItem("library", JSON.stringify(library))
-  }, [library])
 
   useEffect(() => {
     const applyTheme = () => {
@@ -152,84 +123,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.accent = accentColor
   }, [accentColor])
-
-  useEffect(() => {
-    if (!user) {
-      setRatings({})
-      return
-    }
-
-    const storageKey = `ratings:${user.email}`
-    const savedRatings = localStorage.getItem(storageKey)
-    if (!savedRatings) {
-      setRatings({})
-      return
-    }
-
-    try {
-      setRatings(JSON.parse(savedRatings) as Record<string, number>)
-    } catch {
-      localStorage.removeItem(storageKey)
-      setRatings({})
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
-    localStorage.setItem(`ratings:${user.email}`, JSON.stringify(ratings))
-  }, [ratings, user])
-
-  useEffect(() => {
-    if (!user) {
-      setReviews({})
-      return
-    }
-
-    const storageKey = `reviews:${user.email}`
-    const savedReviews = localStorage.getItem(storageKey)
-    if (!savedReviews) {
-      setReviews({})
-      return
-    }
-
-    try {
-      setReviews(JSON.parse(savedReviews) as Record<string, string>)
-    } catch {
-      localStorage.removeItem(storageKey)
-      setReviews({})
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
-    localStorage.setItem(`reviews:${user.email}`, JSON.stringify(reviews))
-  }, [reviews, user])
-
-  useEffect(() => {
-    if (!user) {
-      setHistory([])
-      return
-    }
-
-    const storageKey = `history:${user.email}`
-    const savedHistory = localStorage.getItem(storageKey)
-    if (!savedHistory) {
-      setHistory([])
-      return
-    }
-
-    try {
-      setHistory(JSON.parse(savedHistory) as HistoryEntry[])
-    } catch {
-      localStorage.removeItem(storageKey)
-      setHistory([])
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
-    localStorage.setItem(`history:${user.email}`, JSON.stringify(history))
-  }, [history, user])
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
@@ -259,13 +152,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return
     }
     if (favorites.some(item => item.id === movie.id)) return
-    dispatchFavorites({ type: "ADD", payload: movie })
+    setFavorites(current => current.some(item => item.id === movie.id) ? current : [...current, movie])
     showToast(`« ${movie.title} » ajouté aux favoris.`)
   }
 
   const removeFavorite = (id: number) => {
     const movie = favorites.find(item => item.id === id)
-    dispatchFavorites({ type: "REMOVE", payload: id })
+    setFavorites(current => current.filter(item => item.id !== id))
     showToast(movie ? `« ${movie.title} » retiré des favoris.` : "Film retiré des favoris.", "info")
   }
 
@@ -359,32 +252,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       { movie, source, viewedAt: Date.now() },
       ...current.filter(entry => `${entry.source}:${entry.movie.id}` !== key),
     ].slice(0, 20))
-  }, [isLoggedIn])
+  }, [isLoggedIn, setHistory])
 
   const clearFavorites = useCallback(() => {
-    dispatchFavorites({ type: "LOAD", payload: [] })
+    setFavorites([])
     showToast("Favoris vidés.", "info")
-  }, [showToast])
+  }, [showToast, setFavorites])
 
   const clearLibrary = useCallback(() => {
     setLibrary([])
     showToast("Bibliothèque vidée.", "info")
-  }, [showToast])
+  }, [showToast, setLibrary])
 
   const clearRatings = useCallback(() => {
     setRatings({})
     setReviews({})
-    if (user) {
-      localStorage.removeItem(`ratings:${user.email}`)
-      localStorage.removeItem(`reviews:${user.email}`)
-    }
     showToast("Toutes vos notes et critiques ont été supprimées.", "info")
-  }, [showToast, user])
+  }, [showToast, setRatings, setReviews])
 
   const clearHistory = useCallback(() => {
     setHistory([])
     showToast("Historique des films consultés effacé.", "info")
-  }, [showToast])
+  }, [showToast, setHistory])
 
   return (
     <AppContext.Provider value={{

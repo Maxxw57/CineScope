@@ -15,6 +15,11 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
   return <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex w-full items-center justify-between gap-4 rounded-xl border border-gray-200/80 px-4 py-3 text-left dark:border-white/10"><span className="text-sm font-bold">{label}</span><span className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-700"}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${checked ? "left-6" : "left-1"}`} /></span></button>
 }
 
+const BACKUP_KEYS = ["favorites", "library", "profile", "theme", "accentColor", "cinePreferences", "recommendations:ignored"]
+const BACKUP_PREFIXES = ["favorites:", "library:", "ratings:", "reviews:", "history:", "profile-media:"]
+/** Clés incluses dans l'export/import (jamais les comptes, la session ni les tentatives de connexion). */
+const isBackupKey = (key: string) => BACKUP_KEYS.includes(key) || BACKUP_PREFIXES.some(prefix => key.startsWith(prefix))
+
 export default function Settings() {
   const { user } = useAuth()
   const { favorites, library, ratings, history, clearFavorites, clearLibrary, clearRatings, clearHistory, accentColor, setAccentColor, preferences, updatePreferences, resetPreferences } = useApp()
@@ -35,8 +40,7 @@ export default function Settings() {
     const data: Record<string, unknown> = {}
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (!key || key === "account" || key === "user" || key === "loginAttempts") continue
-      if (["favorites", "library", "profile", "theme", "accentColor", "cinePreferences", "recommendations:ignored"].includes(key) || key.startsWith("ratings:") || key.startsWith("history:") || key.startsWith("profile-media:")) {
+      if (key && isBackupKey(key)) {
         const value = localStorage.getItem(key)
         try { data[key] = value ? JSON.parse(value) : null } catch { data[key] = value }
       }
@@ -51,7 +55,8 @@ export default function Settings() {
     try {
       const parsed = JSON.parse(await file.text()) as { data?: Record<string, unknown> }
       if (!parsed.data || typeof parsed.data !== "object") throw new Error()
-      Object.entries(parsed.data).forEach(([key, value]) => localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value)))
+      // Seules les données CineScope sont restaurées : un fichier ne peut pas réécrire les comptes ou la session.
+      Object.entries(parsed.data).filter(([key]) => isBackupKey(key)).forEach(([key, value]) => localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value)))
       showToast("Sauvegarde importée. CineScope va être rechargé.")
       window.setTimeout(() => window.location.reload(), 700)
     } catch { showToast("Ce fichier de sauvegarde est invalide.", "error") }
